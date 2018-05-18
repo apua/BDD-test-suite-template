@@ -1,0 +1,8 @@
+*** Variables ***
+${NEW_TESTPLAN_BUTTON_IN_MANAGE_TEST_PLANS_PAGE}    css=a[href="#/testplanedit/show"]
+${ACTIONS_BUTTON_IN_MANAGE_TEST_PLANS_PAGE}         css=div#tour-testplan-actions > label[rel="localize[core.details.actions]"]  
+${EDIT_IN_ACTIONS_OF_MANAGE_TEST_PLANS_PAGE}        css=a[rel="localize[core.details.edit]"]
+${DELETE_IN_ACTIONS_OF_MANAGE_TEST_PLANS_PAGE}      css=a[rel="localize[core.details.delete]"]
+${SUBMIT_IN_ACTIONS_OF_MANAGE_TEST_PLANS_PAGE}      css=a#cirrus-submit-job
+${YES_DELETE_IN_DELETE_TEST_PLAN_WINDOW}            css=button[rel="localize[core.deleteConfirm.ok]"]
+${OK_IN_JOB_SUBMISSION_POPUP_WINDOW}                css=div.hp-dialog > footer > div.hp-controls > button.hp-ok

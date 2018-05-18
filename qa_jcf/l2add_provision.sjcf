@@ -1,0 +1,76 @@
+
+################################################################ User Config Section ################################################################
+
+ckey
+    test_plan = L2ADD SJCF MAT
+    sut_name = nic-ride
+    ilo_ip = 10.30.1.54
+    ilo_user = Administrator
+    ilo_password = Compaq123
+    sys_ip = 10.30.1.37
+    sys_username = root
+    sys_password = Compaq123
+    boot_mode = uefi
+    mac_add = 38:63:bb:43:20:70
+    nic_id = 1
+
+################################################################ Cirrus Parameters ##################################################################
+
+info
+    name = L2ADD SJCF MAT
+    desc = Cirrus SJCF MAT Testing
+
+sut AS "sut"
+    ilo_ip = 10.30.1.54
+
+### L2ADD OS Provision ###
+ckey
+    os_plan = RH70x64
+    kiso_dir = ""
+    nic_dd_dir = ""
+    os_dir = http://10.30.1.75/deployment/Gen9/Snap6/OS/rhel70-x64/
+    spp_dir = http://10.30.1.75/deployment/Gen9/Snap6/SPP/SPPGen9Snap5.2015_1030.47.iso
+    stg_dd_dir = ""
+    flash_fw = no
+    install_L2_sysbuilder = no
+    install_SPP = yes
+    inject_storage_driver = ""
+
+sut AS "l2add_server"
+    # L2ADD latest version sys_ip
+    sys_ip = 10.30.1.114
+    cirrus_flags
+        shared
+
+l2add ON l2add_server AS "Provision: Install OS from L2ADD"
+    l2add_ip=${suts.l2add_server.sys_ip}
+    l2add_username=${suts.l2add_server.sys_username}
+    l2add_pw=${suts.l2add_server.sys_password}
+    setting
+        CONFIG
+            OS=${ckey.os_plan}
+            OS_PATH=${ckey.os_dir}
+            NODES
+                NODE
+                    ILO
+                        IP=${suts.sut.ilo_ip}
+                        USER=${suts.sut.ilo_user}
+                        PWD=${suts.sut.ilo_password}     
+                    HOSTNAME=${suts.sut.name}
+                    NIC_ID=${ckey.nic_id}
+                    MACADDR=${ckey.mac_add}
+                    BOOTMODE=${ckey.boot_mode}
+                    KISO_PATH=${ckey.kiso_dir}
+                    STG_DD_PATH=${ckey.stg_dd_dir}
+                    NIC_DD_PATH=${ckey.nic_dd_dir}
+                    SPP
+                        INSTALL=${ckey.install_SPP}
+                        FLASH_FIRMWARE=${ckey.flash_fw}
+                        ISO_PATH=${ckey.spp_dir}
+                    SYSBUILDER
+                        INSTALL=${ckey.install_L2_sysbuilder}
+                        SITE_LOCATION=HOUSTON
+                        CORP_NIC_ID=2
+
+hwdb ON ${cirrus} AS "Update HWDB"
+    source = ${dynamic.hwdb}

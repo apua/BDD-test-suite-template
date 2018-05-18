@@ -1,0 +1,74 @@
+{
+  "info": {
+      "desc": "Agent Switch Test",
+      "login_name": "administrator",
+      "name" : "Agent Switch between Windows helper System and Linux SUT"
+  },
+  "suts": {
+    "robogalaxy_server": {
+        "cirrus_flags": ["unregistered"],
+        "name": "winrg",
+        "type": "robogalaxy",
+        "desc": "",
+        "sys_ip": "10.30.250.23",
+        "sys_username": "Administrator",
+        "sys_password": "Compaq123",
+        "rg_root": "/Users/Administrator/RG",
+        "os_family": "windows",
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    },
+    "sut": {
+        "cirrus_flags": ["unregistered"],
+        "name": "sles12",
+        "type": "altair",
+        "desc": "sles12 test hw",
+        "sys_ip": "10.30.250.19",
+        "sys_username": "root",
+        "sys_password": "Compaq123",
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    }
+  },
+  "stages": {
+      "Agent on Windows Helper SUT RG": {
+          "target": "robogalaxy_server",
+          "next_pass": "Agent on Linux SUT",
+          "next_fail": "Agent on Linux SUT",
+          "action": {
+              "cirrus_module": "robogalaxy",
+              "testcase": ["C:\\Users\\Administrator\\RG\\rgWithFolder\\tests\\rgWithFolder\\add.txt"]
+          }
+      },
+      "Agent on Linux SUT": {
+          "target": "${sut}",
+          "next_pass": "_quit",
+          "next_fail": "_quit",
+           "action": {
+               "cirrus_module": "sys_command",
+               "command": "${ckey.command}",
+               "output_mode": "overwrite",
+               "error_map": {
+                   "127": "not found",
+                   "1": "not recognized"
+               }
+           }
+
+      }
+   },
+  "ckey": {
+      "command": "dmidecode |grep -A3 'System Information'"
+    }
+
+}
+

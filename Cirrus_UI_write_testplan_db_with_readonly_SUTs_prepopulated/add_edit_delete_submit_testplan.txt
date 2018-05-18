@@ -1,0 +1,82 @@
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+Resource    ${CURDIR}/../resources/restapi_keywords.txt
+
+*** Test Cases ***
+Submit Job From Manage Test Plan Page
+    [Tags]      rat     submit 
+    Go To Edit Test Plan Page
+    Open Directory  Utilities
+    Open Directory  Samples
+    Add Snippet     sleeptest
+    Verify Snippet In Order 1 Status Should Be "Ready to Submit"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[1]['name']}
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[1]}
+    ${testplan name}=   Get Random Word
+    Save Test Plan As ${testplan name}
+    ${job id}=    Submit ${testplan name} From Manage Test Plans Page
+    Monitor Job ${job id} Status Should Be pass In 70 Seconds
+
+Add And Save Test Plan
+    [Tags]      rat     testplan
+    Go To Manage Test Plans Page
+    Add New Test Plan By Clicking New Test Plan Button
+    Open Directory  Provisioning
+    Add Snippet     Altair OS Install
+    Click Cancel In Ckey Window
+    Verify Snippet In Order 1 Status Should Be "Input Required"
+    Open Directory  Utilities
+    Open Directory  Samples
+    Add Snippet     sleeptest
+    Verify Snippet In Order 2 Status Should Be "Ready to Submit"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[0]['name']}
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[1]['name']}
+    ${testplan name}=   Get Random Word
+    Save Test Plan As ${testplan name}
+    ${testplan}=    Get Data From JSON  ${CURDIR}/../testdata/add_and_save_test_plan.json
+    Set To Dictionary   ${testplan[0]}  name=${testplan name}
+    Verify Test Plan ${testplan name} Has Correct Data ${testplan[0]}
+    Delete Test Plan ${testplan name}
+
+Edit Test Plan
+    [Tags]      rat     testplan
+    ${tp}=    Get Data From JSON And Assign Testplan Name   ${CURDIR}/../testdata/edit_test_plan.json
+    Import Test Plans Via REST  ${tp}
+    ${testplan name}=    Set Variable    ${tp['info']['name']}
+    Go To Manage Test Plans Page
+    Select Test Plan    ${testplan name}
+    Edit Test Plan ${testplan name} From Manage Test Plans Page
+    Verify Snippet Altair OS Install Added In Test Layout Order 1
+    Verify Snippet sleeptest Added In Test Layout Order 2
+    Verify Snippet In Order 1 Status Should Be "Input Required"
+    Verify Snippet In Order 2 Status Should Be "Ready to Submit"
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[0]}
+    Verify SUT Show Up In SUT Section Row 2 With Correct Data ${hw[1]}
+    Click Order 1 Snippet To Edit Ckeys
+    Click Dropdown List Of Ckey altair_auto_server
+    ${altair}=    Set Variable    ${hw[2]['name']}
+    Select List Item "${altair}" From altair_auto_server
+    Click Dropdown List Of Ckey os_build_plan
+    Select List Item "ProLiant OS - RHEL 7.0 x64 Scripted Install" From os_build_plan
+    Click Save In Ckey Window
+    Verify Snippet In Order 1 Status Should Be "Ready to Submit"
+    Save Updated Test Plan
+    ${result}=    Get Data From JSON  ${CURDIR}/../testdata/edit_test_plan_ui_result.json
+    Set To Dictionary   ${result[0]}    name=${testplan name}
+    Verify Test Plan ${testplan name} Has Correct Data ${result[0]}
+    Delete Test Plan ${testplan name}
+
+Delete Test Plan
+    [Tags]      rat     testplan
+    ${tp}=    Get Data From JSON And Assign Testplan Name   ${CURDIR}/../testdata/delete_test_plan.json
+    Import Test Plans Via REST  ${tp}
+    ${testplan name}=    Set Variable    ${tp['info']['name']}
+    Go To Manage Test Plans Page
+    Select Test Plan    ${testplan name}
+    Delete Test Plan ${testplan name}
+    Verify Test Plan ${testplan name} Not Exist

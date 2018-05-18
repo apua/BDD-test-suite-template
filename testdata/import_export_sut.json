@@ -1,0 +1,55 @@
+[
+    {
+        "name": "autoilo",
+        "ilo_ip": "10.30.1.54",
+        "ilo_user": "administrator",
+        "ilo_password": "Compaq123",
+        "type": "ilo",
+        "desc": "iLO SUT - 0",
+        "inventory_limit": "basic",
+        "inventory_interval": "0",
+        "sys_ip": "10.30.1.35",
+        "sys_username": "root",
+        "sys_password": "Compaq123"
+    },
+    {
+        "name": "auto_SLES 12 GMC2",
+        "sys_ip": "10.30.250.19",
+        "sys_username": "root",
+        "sys_password": "Compaq123",
+        "type": "altair",
+        "desc": "linux vm sut - 1"
+    },
+    {
+        "name": "auto_WinRG",
+        "sys_ip": "10.30.250.23",
+        "sys_username": "Administrator",
+        "sys_password": "Compaq123",
+        "os_family": "windows",
+        "rg_root": "/Users/Administrator",
+        "type": "robogalaxy",
+        "desc": "Robogalaxy win server - 2"
+    },
+    {
+        "name": "auto_l2a",
+        "svn_sys_ip": "15.119.212.37",
+        "svn_user": "testmgr",
+        "svn_pwd": "testmgr",
+        "nfs_sys_ip": "15.119.212.37",
+        "nfs_user": "testmgr",
+        "nfs_pwd": "testmgr",
+        "web_sys_ip": "15.119.212.36",
+        "type": "l2a",
+        "desc": "l2a server - 3"
+    },
+    {
+        "name": "auto_cirrus001",
+        "sys_ip": "10.30.1.76",
+        "sys_username": "root",
+        "sys_password": "L1Password!",
+        "testcase_dir": "/home/testmgr/L2/trunk/bin",
+        "type": "l2",
+        "desc": "L2 SUT - 4"
+    }
+]
+

@@ -1,0 +1,85 @@
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+
+*** Test Cases ***
+Cirrus - Agent: SUT to Helper
+    [Tags]      fast     agent
+    Upload QA Test Snippets
+    Go To Edit Test Plan Page
+    Open Directory  QA
+    Add Snippet     copyfiles
+    Verify Snippet copyfiles Added In Test Layout Order 1
+    Verify Snippet In Order 1 Status Should Be "None"
+    Open Directory  Utilities
+    Add Snippet     Sys-command on remote system
+    Fillin Ckey target_ip With Value ${hw[9]['sys_ip']}
+    Fillin Ckey command With Value ls /tmp
+    Fillin Ckey sys_username With Value ${hw[9]['sys_username']}
+    Fillin Input Type Ckey sys_password With Value ${hw[9]['sys_password']}
+    Click Save In Ckey Window
+    Verify Snippet Sys-command on remote system Added In Test Layout Order 2
+    Verify Snippet In Order 2 Status Should Be "Ready to Submit"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[10]['name']}
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[10]}
+    ${job id}=    Submit Job From Edit Test Plan Page
+    Monitor Job ${job id} Status Should Be pass In 120 Seconds
+
+Cirrus - Agent: Helper to Helper
+    [Tags]      fast     agent
+    Upload QA Test Snippets
+    Go To Edit Test Plan Page
+    Open Directory  Test Harnesses
+    Open Directory  RoboGalaxy
+    Add Snippet     Basic job (registered server)
+    Click Dropdown List Of Ckey robogalaxy_auto_server
+    Select List Item "${hw[5]['name']}" From robogalaxy_auto_server
+    Click Dropdown List Of Ckey robogalaxy_project
+    Select List Item "rg_test" From robogalaxy_project
+    Wait Until Fetch Completes
+    Page Should Contain     /home/tenggo/rg_test/tests/hello.txt
+    Select Checkbox With Text   /home/tenggo/rg_test/tests/hello.txt
+    Verify Checkbox With Text "/home/tenggo/rg_test/tests/hello.txt" Selected
+    Add Selected Checkbox To Right Side
+    ${selected layout}=    Get Data From JSON    ${CURDIR}/../testdata/test_2side_selection.json
+    Verify Option ${selected layout[0]} In Right Side
+    Click Save In Ckey Window
+    Verify Snippet Basic job (registered server) Added In Test Layout Order 1
+    Verify Snippet In Order 1 Status Should Be "Ready to Submit"
+    Open Directory  Utilities
+    Add Snippet     Sys-command on remote system
+    Fillin Ckey target_ip With Value ${hw[9]['sys_ip']}
+    Fillin Ckey command With Value ls /tmp
+    Fillin Ckey sys_username With Value ${hw[9]['sys_username']}
+    Fillin Input Type Ckey sys_password With Value ${hw[9]['sys_password']}
+    Click Save In Ckey Window
+    Verify Snippet Sys-command on remote system Added In Test Layout Order 2
+    Verify Snippet In Order 2 Status Should Be "Ready to Submit"
+    Click Not Required Checkbox
+    ${job id}=    Submit Job From Edit Test Plan Page
+    Monitor Job ${job id} Status Should Be pass In 120 Seconds
+
+Cirrus - Agent: Helper to SUT
+    [Tags]      fast     agent
+    Upload QA Test Snippets
+    Go To Edit Test Plan Page
+    Open Directory  Utilities
+    Add Snippet     Sys-command on remote system
+    Fillin Ckey target_ip With Value ${hw[10]['sys_ip']}
+    Fillin Ckey command With Value ipconfig
+    Fillin Ckey sys_username With Value ${hw[10]['sys_username']}
+    Fillin Input Type Ckey sys_password With Value ${hw[10]['sys_password']}
+    Click Save In Ckey Window
+    Verify Snippet Sys-command on remote system Added In Test Layout Order 1
+    Verify Snippet In Order 1 Status Should Be "Ready to Submit"
+    Open Directory  QA
+    Add Snippet     copyfiles
+    Verify Snippet copyfiles Added In Test Layout Order 2
+    Verify Snippet In Order 2 Status Should Be "None"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[9]['name']}
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[9]}
+    ${job id}=    Submit Job From Edit Test Plan Page
+    Monitor Job ${job id} Status Should Be pass In 120 Seconds

@@ -1,0 +1,17 @@
+[
+    {
+        "name":"test4",
+        "id":"4",
+        "type":"robogalaxy"
+    },
+    {
+        "name":"test5",
+        "id":"5",
+        "type":"l2_add"
+    },
+    {
+        "name":"test6",
+        "id":"6",
+        "type":"l2"
+    }
+]

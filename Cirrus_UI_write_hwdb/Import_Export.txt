@@ -1,0 +1,55 @@
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+Resource    ${CURDIR}/../resources/restapi_keywords.txt
+
+*** Variables ***
+${Download_Dir}    /home/vagrant/Downloads
+
+*** Test Cases ***
+Cirrus - Import Export TestPlan Hardware
+    [Tags]      fast     import_export  disabled
+    Go To Hardware Management Page
+    ${hw}=    Get Data From JSON And Push Random Name Values    ${CURDIR}/../testdata/import_export_sut.json
+    Import Test SUTs Via REST    ${hw}
+    ${export_hardware_file}=    Export Hardware    ${hw}
+    Verify Export Hardware File ${Download_Dir}/${export_hardware_file} Has Correct Data ${hw}
+    Delete Hardware ${hw[0]}
+    Delete Hardware ${hw[1]}
+    Delete Hardware ${hw[2]}
+    Delete Hardware ${hw[3]}
+    Delete Hardware ${hw[4]}
+    ${import_hw}=    Get Data From JSON    ${Download_Dir}/${export_hardware_file}
+    Import Hardware    ${Download_Dir}/${export_hardware_file}
+    Reset Hardware Manager
+    Verify Import Hardware Has Correct Data    ${import_hw}
+    Delete Hardware ${hw[0]}
+    Delete Hardware ${hw[2]}
+    Delete Hardware ${hw[3]}
+    Delete Hardware ${hw[4]}
+    Go To Edit Test Plan Page
+    Open Directory  Utilities
+    Open Directory  Samples
+    Add Snippet     sleeptest
+    Verify Snippet sleeptest Added In Test Layout Order 1
+    Verify Snippet In Order 1 Status Should Be "Ready to Submit"
+    Add Snippet     Sys-command on SUT
+    Fillin Ckey command With Value ls /tmp
+    Click Save In Ckey Window
+    Verify Snippet Sys-command on SUT Added In Test Layout Order 2
+    Verify Snippet In Order 2 Status Should Be "Ready to Submit"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[1]['name']}
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[1]}
+    ${testplan name}=   Get Random Word
+    Save Test Plan As ${testplan name}
+    ${export_testplans}=    Create List    ${testplan name}
+    ${export_testplan_file}=    Export TestPlan    ${export_testplans}
+    Verify Test Plan File ${Download_Dir}/${export_testplan_file} Has Correct Data
+    Delete Test Plan ${testplan name}
+    Import TestPlan    ${Download_Dir}/${export_testplan_file}
+    Verify Test Plan File ${Download_Dir}/${export_testplan_file} Has Correct Data
+    Delete Test Plan ${testplan name}
+    Go To Hardware Management Page
+    Delete Hardware ${hw[1]}

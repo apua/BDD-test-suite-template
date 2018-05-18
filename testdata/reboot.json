@@ -1,0 +1,126 @@
+{
+  "info": {
+      "desc": "Reboot test",
+      "login_name": "administrator",
+      "name" : "Reboot linux windows and esxi"
+  },
+  "suts": {
+    "sut": {
+        "cirrus_flags": ["unregistered"],
+        "name": "ilo54",
+        "ilo_ip": "10.30.1.54",
+        "ilo_user": "Administrator",
+        "ilo_password": "Q29tcGFxMTIz",
+        "sys_ip": "10.30.1.35",
+        "sys_username": "root",
+        "sys_password": "Q29tcGFxMTIz",
+        "nic_id": "1",
+        "mac_add": "38:63:bb:43:20:70",
+        "type": "ilo",
+        "desc": "iLO SUT - 0",
+        "id": 2,
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    },
+    "sut1": {
+        "cirrus_flags": ["unregistered"],
+        "name": "win2012",
+        "type": "altair",
+        "desc": "win2012 test hw",
+        "sys_ip": "10.30.250.20",
+        "sys_username": "Administrator",
+        "sys_password": "Compaq123",
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    },
+    "sut2": {
+        "cirrus_flags": ["unregistered"],
+        "name": "esxi6",
+        "type": "altair",
+        "desc": "altair test hw",
+        "sys_ip": "10.30.250.27",
+        "sys_username": "root",
+        "sys_password": "Com!paq123",
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    }
+  },
+  "stages": {
+      "Reboot Linux iLo SUT": {
+          "target": "${cirrus}",
+          "stage_sut": "sut",
+          "next_pass": "Reboot VM Windows",
+          "next_fail": "Reboot VM Windows",
+          "action": {
+              "cirrus_module": "reboot",
+              "rebootmode": "ilo",
+              "rebootOSType": "lin",
+              "iloCommand": "Power off hard #### Power On",
+              "hostIP": "${suts.sut.sys_ip}",
+              "username": "S{suts.sut.sys_username}",
+              "password": "${suts.sut.sys_password}",
+              "iloip": "${suts.sut.ilo_ip}",
+              "ilousername": "${suts.sut.ilo_user}",
+              "ilopassword": "${suts.sut.ilo_password}",
+              "repeat": 1,
+              "timeunitseconds": 60,
+              "shutdownwait": 2,
+              "systemupwait": 10
+          }
+      },
+      "Reboot VM Windows": {
+          "target": "${cirrus}",
+          "stage_sut": "sut1",
+          "next_pass": "Reboot VM Esxi",
+          "next_fail": "Reboot VM Esxi",
+          "action": {
+              "cirrus_module": "reboot",
+              "rebootmode": "os",
+              "rebootOSType": "win",
+              "iloCommand": "Power off hard #### Power On",
+              "hostIP": "${suts.sut1.sys_ip}",
+              "username": "S{suts.sut1.sys_username}",
+              "password": "${suts.sut1.sys_password}",
+              "repeat": 1,
+              "timeunitseconds": 60,
+              "shutdownwait": 2,
+              "systemupwait": 10
+          }
+      },
+      "Reboot VM Esxi": {
+          "target": "${cirrus}",
+          "stage_sut": "sut2",
+          "next_pass": "_quit",
+          "next_fail": "_quit",
+          "action": {
+              "cirrus_module": "reboot",
+              "rebootmode": "os",
+              "iloCommand": "Power off hard #### Power On",
+              "rebootOSType": "esxi",
+              "hostIP": "${suts.sut2.sys_ip}",
+              "username": "S{suts.sut2.sys_username}",
+              "password": "${suts.sut2.sys_password}",
+              "repeat": 1,
+              "timeunitseconds": 60,
+              "shutdownwait": 2,
+              "systemupwait": 10
+          }
+      }
+   }
+}
+

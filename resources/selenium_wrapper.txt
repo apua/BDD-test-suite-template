@@ -1,0 +1,1457 @@
+*** Settings ***
+Library     Selenium2Library
+
+*** Keywords ***
+Wait For Ajax
+    [Documentation]     {Internal}
+    ...                 Wait for all background active AJAX requests finished.
+    ...                 Example:
+    ...                 | Wait For Ajax |
+    Wait For Condition    return window.jQuery != undefined && jQuery.active == 0      timeout=60
+ 
+Wait For Animation
+    [Documentation]     {Internal}
+    ...                 Wait for all Javascript animation finished.
+    ...                 Example:
+    ...                 | Wait For Animation |
+    Wait For Condition    return $(":animated").length == 0      timeout=60
+
+Wait For Ajax And Animation
+    [Documentation]     {Internal}
+    ...                 Wait for all active AJAX and Javascript animation finished to improve test stability.
+    ...                 Example:
+    ...                 | Wait For Ajax And Animation |
+    Wait For Ajax
+    Wait For Animation
+
+Wait Until Fetch Completes
+    [Documentation]     {External}
+    ...                 Wait until fetch function completes. This keyword is used for features with longer fetch time, such as nsp server and l2a server. ${timeout} in second can be set and default value is 60 seconds.
+    ...                 Example:
+    ...                 | Wait Until Fetch Completes |
+    ...                 | Wait Until Fetch Completes | 600 |
+    [Arguments]         ${timeout}=60
+    Wait For Condition    return jQuery.active == 0      ${timeout}
+    Wait For Condition    return $(":animated").length == 0      ${timeout}
+
+Type Text
+    [Documentation]     {External}
+    ...                 Clear the default text in the text input field and input the specified ${text} to the field. The field locator is given by ${element}.
+    ...                 Example:
+    ...                 | Type Text | id=hp-login-user | Administrator |
+    [Arguments]         ${element}     ${text}
+    Wait For Ajax And Animation
+    Clear Element Text  ${element}
+    Input Text          ${element}   ${text}
+
+Click
+    [Documentation]     {External}
+    ...                 Click the specified ${element}.
+    ...                 Example:
+    ...                 | Click | id=hp-login-button |
+    [Arguments]         ${element} 
+    Wait For Ajax And Animation
+    Click Element       ${element}
+
+Double Click 
+    [Documentation]     {External}
+    ...                 Double click the specified ${element}.
+    ...                 Example:
+    ...                 | Double Click | id=hp-login-button |
+    [Arguments]         ${element}
+    Wait For Ajax And Animation
+    Double Click Element   ${element}
+
+Login Cirrus
+    [Documentation]     {External}
+    ...                 Login Cirrus appliance with username ${user} and password ${password}.
+    ...                 Example:
+    ...                 | Login Cirrus | Administrator | Compaq123 |
+    [Arguments]         ${user}     ${password}
+    Import Resource     ${CURDIR}/objects/cirrus_login_page.txt
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Type Text           ${LOGIN_USER_IN_LOGIN_PAGE}       ${user}
+    Type Text           ${LOGIN_PASSWORD_IN_LOGIN_PAGE}   ${password}
+    Click               ${LOGIN_BUTTON_IN_LOGIN_PAGE}
+    Wait Until Page Contains Element    ${HEADER_MAIN_MENU}     timeout=20
+    Click               ${JOB_ATTR_OK}
+
+Logout Cirrus
+    [Documentation]     {External}
+    ...                 Logout Cirrus appliance.
+    ...                 Example:
+    ...                 | Logout Cirrus |
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Click               ${HEADER_SESSION_CONTROL}
+    Click               ${HEADER_LOGOUT_LINK}
+
+Go To Hardware Management Page
+    [Documentation]     {External}
+    ...                 Navigate to Hardware Management page.
+    ...                 Example:
+    ...                 | Go To Hardware Management Page |
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Click               ${HEADER_MAIN_MENU}
+    Click               ${HEADER_HARDWARE_MANAGEMENT_LINK}
+
+Go To Edit Test Plan Page
+    [Documentation]     {External}
+    ...                 Navigate to Edit Test Plan page.
+    ...                 Example:
+    ...                 | Go To Edit Test Plan Page |
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Click               ${HEADER_MAIN_MENU}
+    Click               ${HEADER_EDIT_TEST_PLAN_LINK}
+
+Go To Job Status Page
+    [Documentation]     {External}
+    ...                 Navigate to Job Status page.
+    ...                 Example:
+    ...                 | Go To Job Status Page |
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Click               ${HEADER_MAIN_MENU}
+    Click               ${HEADER_JOB_STATUS_LINK}
+
+Go To Manage Test Plans Page
+    [Documentation]     {External}
+    ...                 Navigate to Manage Test Plans page.
+    ...                 Example:
+    ...                 | Go To Manage Test Plans Page |
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Click               ${HEADER_MAIN_MENU}
+    Click               ${HEADER_MANAGE_TEST_PLANS_LINK}
+
+Go To Home Page
+    [Documentation]     {External}
+    ...                 Navigate to Home page.
+    ...                 Example:
+    ...                 | Go To Home Page |
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Click               ${HEADER_MAIN_MENU}
+    Click               ${HEADER_HOME_LINK}
+
+Add ${type} Hardware With Data ${hw}
+    [Documentation]     {External}
+    ...                 Add ${type} type Hardware with detailed data ${hw} to database. ${hw} should be a JSON content at least including name, type, and desc.
+    ...                 Example:
+    ...                 | ${hw}= | Create Dictionary | name=test | type=generic | desc=Test sut |
+    ...                 | Add Generic Hardware With Data ${hw} |
+    #Go To Hardware Management Page
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Log To Console      Adding ${type} HW...\n
+    Input HW Name Type Desc  ${hw}
+    # usergroup feature: select owner_type users and users administrator
+    Click               id=users
+    Click               css=#tour-server-add-owner-user-select > div > div > div
+    Click               css=#tour-server-add-owner-user-select > div > div > ol > li[data-id="administrator"]
+    ${type}=    Convert To Lowercase    ${type}
+    Run Keyword If  '${type}' == 'ilo'  Fill In ilo HW Data     ${hw}
+    Run Keyword If  '${type}' == 'altair'  Fill In altair HW Data     ${hw}
+    Run Keyword If  '${type}' == 'robogalaxy'  Fill In robogalaxy HW Data     ${hw}
+    Run Keyword If  '${type}' == 'l2a'  Fill In l2a HW Data     ${hw}
+    Run Keyword If  '${type}' == 'l2'  Fill In l2 HW Data     ${hw}
+    Run Keyword If  '${type}' == 'tbird_oneview'  Fill In oneview HW Data     ${hw}
+    Add HW Should Succeed   ${hw['name']}
+
+Input HW Name Type Desc
+    [Documentation]     {Internal}
+    ...                 Input hw name, select hw type, and input desc.
+    ...                 Example:
+    ...                 | ${hw}= | Create Dictionary | name=test | type=generic | desc=Test sut |
+    ...                 | Input HW Name Type Desc | ${hw} |
+    ...                 | Click | ADD BUTTON |
+    [Arguments]         ${hw}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Click               ${ADD_HARDWARE_IN_HARDWARE_MANAGEMENT_PAGE}
+    Type Text           ${FILLIN_HW_NAME_IN_ADD_OR_CLONE_HARDWARE_WINDOW}      ${hw['name']}
+    Click               ${LIST_HW_TYPE_ARROW_IN_ADD_HARDWARE_WINDOW}
+    Click               css=#server-type > div > div > div > ol > li[data-id="${hw['type']}"]
+    Type Text           ${FILLIN_HW_DESC_IN_ADD_HARDWARE_WINDOW}      ${hw['desc']}
+
+Add HW Should Succeed
+    [Documentation]     {Internal}
+    ...                 Click Add button and make sure the hw creation message shows up.
+    ...                 Example:
+    ...                 | ${hw}= | Create Dictionary | name=test | type=generic | desc=Test sut |
+    ...                 | Input HW Name Type Desc | ${hw} |
+    ...                 | Add HW Should Succeed | ${hw['name']} |
+    [Arguments]         ${hw name}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Click               ${ADD_BUTTON_IN_ADD_HARDWARE_WINDOW}
+    Wait Until Page Contains    ${hw name} is added successfully.   timeout=180
+    Run Keyword And Ignore Error    Click               ${CLOSE_IN_ADD_AND_DELETE_COMPLETE_WINDOW}
+
+Add HW Group Should Succeed
+    [Documentation]     {Internal}
+    ...                 Click Add button and make sure the hw group creation message shows up.
+    ...                 Example:
+    ...                 | Add Members ${member} To Hardware Group |
+    ...                 | Add HW Group Should Succeed |
+    [Arguments]         ${hw name}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Click               ${ADD_BUTTON_IN_ADD_HARDWARE_GROUP_WINDOW}
+    Wait Until Page Contains    ${hw name} is added successfully.   timeout=180
+    Run Keyword And Ignore Error    Click               ${CLOSE_IN_ADD_AND_DELETE_COMPLETE_WINDOW}
+
+
+Clone HW Should Succeed
+    [Documentation]     {Internal}
+    ...                 Click OK button and make sure the hw creation message shows up.
+    ...                 Example:
+    ...                 | ${hw}= | Create Dictionary | name=test | type=generic | desc=Test sut |
+    ...                 | Input HW Name Type Desc | ${hw} |
+    ...                 | Clone HW Should Succeed | ${hw['name']} |
+    [Arguments]         ${hw name}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Click               ${OK_IN_CLONE_HARDWARE_WINDOW}
+    Wait Until Page Contains    ${hw name} is added successfully.
+    Run Keyword And Ignore Error    Click               ${OK_IN_CLONE_COMPLETE_WINDOW}
+
+Verify Added HW Name Type Desc Should Be
+    [Documentation]     {External}
+    ...                 Verify hw name, type, desc.
+    ...                 Example:
+    ...                 | ${hw}= | Create Dictionary | name=test | type=generic | desc=Test sut |
+    ...                 | Input HW Name Type Desc | ${hw} |
+    ...                 | Add HW Should Succeed | ${hw['name']} |
+    ...                 | Verify Added HW Name Type Desc Should Be | ${hw} |
+    [Arguments]         ${hw}
+    Select HW           ${hw['name']}   ${hw['type']}
+    Element Text Should Be      ${HW_TITLE}     ${hw['name']}
+    #Element Text Should Be      ${GENERAL_HW_NAME}     ${hw['name']}
+    Element Text Should Be      ${GENERAL_HW_TYPE}     ${hw['type']}
+    Element Text Should Be      ${GENERAL_HW_DESC}     ${hw['desc']}
+
+Verify ${hw} Attribute ${attr} Should Be ${val}
+    [Documentation]     {External}
+    ...                 Verify hw ${hw} attribute ${attr} is equal to ${val}.
+    ...                 Example:
+    ...                 | Add iLo Hardware With Data ${hw} |
+    ...                 | Verify ${hw} Attribute ilo_ip Should Be 192.168.1.0 |
+    Select HW           ${hw['name']}
+    Element Text Should Be      css=div#tour-server-${attr}     ${val}
+
+Click Edit Hardware Action
+    [Documentation]     {External}
+    ...                 Click Edit button under Actions for ${hw_name}.
+    ...                 Example:
+    ...                 | Click Edit Hardware Action | SUT1 |
+    [Arguments]         ${hw_name}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Select HW           ${hw_name}
+    Click               ${ACTIONS_BUTTON_IN_HARDWARE_MANAGEMENT_PAGE}
+    Click               ${EDIT_IN_HARDWARE_MANAGEMENT_PAGE}
+
+Edit Hardware ${hw} Description To "${desc}"
+    [Documentation]     {External}
+    ...                 Edit Hardware ${hw} description to string ${desc}.
+    ...                 Example:
+    ...                 | ${hw}= | Create Dictionary | name=test | type=generic | desc=Test sut |
+    ...                 | Edit Hardware ${hw} Description To "Hello World"|
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Click Edit Hardware Action      ${hw['name']}
+    Type Text           ${FILLIN_HW_DESC_IN_EDIT_HARDWARE_WINDOW}      ${desc}
+    Click               ${OK_IN_EDIT_HARDWARE_WINDOW}
+
+Edit Hardware ${hw} Attribute ${attr} To ${val}
+    [Documentation]     {External}
+    ...                 Edit Hardware ${hw} attribute ${attr} to ${val}.
+    ...                 Example:
+    ...                 | ${hw}= | Create Dictionary | name=test | type=generic | desc=Test sut |
+    ...                 | Edit Hardware ${hw} Attribute ilo_ip To 10.30.1.45 |
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Click Edit Hardware Action       ${hw['name']}
+    Type Text           css=input#tour-server-edit-${hw['type']}-${attr}      ${val}
+    Click               ${OK_IN_EDIT_HARDWARE_WINDOW}
+
+Delete Hardware ${hw}
+    [Documentation]     {External}
+    ...                 Delete Hardware ${hw} from database.
+    ...                 Example:
+    ...                 | Delete Hardware sut1 |
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Select HW           ${hw['name']}
+    Click               ${ACTIONS_BUTTON_IN_HARDWARE_MANAGEMENT_PAGE}
+    Click               ${DELETE_IN_HARDWARE_MANAGEMENT_PAGE}
+    Wait Until Element Is Visible   ${YES_DELETE_IN_DELETE_HARDWARE_WINDOW}
+    Click               ${YES_DELETE_IN_DELETE_HARDWARE_WINDOW}
+    Wait Until Page Contains    ${hw['name']} is deleted successfully.  timeout=15
+    Run Keyword And Ignore Error    Click               ${CLOSE_IN_ADD_AND_DELETE_COMPLETE_WINDOW}
+
+Select HW
+    [Documentation]     {External}
+    ...                 Select HW from the left sidebar and optional check if the hw type is correct.
+    ...                 Example:
+    ...                 | Select HW | sut1 |
+    ...                 | Select HW | sut1 | ilo |
+    [Arguments]         ${hw name}  ${hw type}=None
+    #Go To Hardware Management Page
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Table Should Contain    ${HARDWARE_LIST_IN_HARDWARE_MANAGEMENT_PAGE}   ${hw name}
+    Click               xpath=//td[text()="${hw name}"]
+    Run Keyword If      '${hw type}' != 'None'
+    ...                 Element Text Should Be  xpath=//td[text()="${hw name}"]/following-sibling::td[1]    ${hw type}
+
+Verify HW ${hw} Not Exist
+    [Documentation]     {External}
+    ...                 Verify HW does not exist in the database.
+    ...                 Example:
+    ...                 | Verify HW ${hw} Not Exist |
+    Wait Until Page Does Not Contain Element    xpath=//td[text()="${hw['name']}"]
+
+Verify Login User Name Should Be
+    [Documentation]     {External}
+    ...                 Verify login session user name ${username}.
+    ...                 Example:
+    ...                 | Verify Login User Name Should Be | administrator |
+    [Arguments]         ${username}
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Click               ${HEADER_SESSION_CONTROL}
+    Element Text Should Be      ${HEADER_SESSION_USER}     ${username}
+    Click               ${HEADER_SESSION_CONTROL}
+
+Clone Hardware ${old hw} To ${new hw}
+    [Documentation]     {External}
+    ...                 Clone hardware ${old hw} to ${new hw}.
+    ...                 Example:
+    ...                 | Clone Hardware sut1 to sut2 |
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Select HW           ${old hw['name']}
+    Click               ${ACTIONS_BUTTON_IN_HARDWARE_MANAGEMENT_PAGE}
+    Click               ${CLONE_IN_HARDWARE_MANAGEMENT_PAGE}
+    Type Text           ${FILLIN_HW_NAME_IN_ADD_OR_CLONE_HARDWARE_WINDOW}   ${new hw['name']}
+    # usergroup feature: select owner_type users and users administrator
+    Click               id=users
+    Click               css=#tour-server-edit-owner-user-select > a > span.selectBox-arrow
+    Click               css=a[rel="administrator"]
+    Clone HW Should Succeed   ${new hw['name']}
+
+Fill In ilo HW Data
+    [Documentation]     {Internal}
+    ...                 Fill in ilo hardware data ilo_ip, ilo_user, ilo_password, inventory_limit, and inventory_interval.
+    ...                 Example:
+    ...                 | Fill In ilo HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Type Text           ${FILLIN_HW_ILOIP_IN_ADD_HARDWARE_WINDOW}       ${hw['ilo_ip']}
+    Type Text           ${FILLIN_HW_ILOUSER_IN_ADD_HARDWARE_WINDOW}     ${hw['ilo_user']}
+    Type Text           ${FILLIN_HW_ILOPASSWORD_IN_ADD_HARDWARE_WINDOW}     ${hw['ilo_password']}
+
+Fill In altair HW Data
+    [Documentation]     {Internal}
+    ...                 Fill in altair hardware data sys_ip, sys_username, and sys_password.
+    ...                 Example:
+    ...                 | Fill In altair HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Type Text           id=tour-server-add-altair-sys_ip       ${hw['sys_ip']}
+    Type Text           id=tour-server-add-altair-sys_username     ${hw['sys_username']}
+    Type Text           id=tour-server-add-altair-sys_password     ${hw['sys_password']}
+
+Fill In oneview HW Data
+    [Documentation]     {Internal}
+    ...                 Fill in tbird oneview hardware data ov_ip, ov_username, and ov_password.
+    ...                 Example:
+    ...                 | Fill In oneview HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Type Text           id=tour-server-add-tbird_oneview-ov_ip       ${hw['ov_ip']}
+    Type Text           id=tour-server-add-tbird_oneview-ov_username     ${hw['ov_username']}
+    Type Text           id=tour-server-add-tbird_oneview-ov_password     ${hw['ov_password']}
+
+Fill In robogalaxy HW Data
+    [Documentation]     {Internal}
+    ...                 Fill in robogalaxy hardware data sys_ip, sys_username, sys_password, os_family, and rg_root.
+    ...                 Example:
+    ...                 | Fill In robogalaxy HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Type Text           id=tour-server-add-robogalaxy-sys_ip       ${hw['sys_ip']}
+    Type Text           id=tour-server-add-robogalaxy-sys_username     ${hw['sys_username']}
+    Type Text           id=tour-server-add-robogalaxy-sys_password     ${hw['sys_password']}
+    Type Text           id=tour-server-add-robogalaxy-os_family       ${hw['os_family']}
+    Type Text           id=tour-server-add-robogalaxy-rg_root       ${hw['rg_root']}
+
+Fill In l2a HW Data
+    [Documentation]     {Internal}
+    ...                 Fill in l2a hardware data svn_sys_ip, svn_user, svn_pwd, nfs_sys_ip, nfs_user, nfs_pwd, and web_sys_ip.
+    ...                 Example:
+    ...                 | Fill In l2a HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Type Text           id=tour-server-add-l2a-svn_sys_ip       ${hw['svn_sys_ip']}
+    Type Text           id=tour-server-add-l2a-svn_user     ${hw['svn_user']}
+    Type Text           id=tour-server-add-l2a-svn_pwd     ${hw['svn_pwd']}
+    Type Text           id=tour-server-add-l2a-nfs_sys_ip       ${hw['nfs_sys_ip']}
+    Type Text           id=tour-server-add-l2a-nfs_user     ${hw['nfs_user']}
+    Type Text           id=tour-server-add-l2a-nfs_pwd     ${hw['nfs_pwd']}
+    Type Text           id=tour-server-add-l2a-web_sys_ip       ${hw['web_sys_ip']}
+
+Fill In l2 HW Data
+    [Documentation]     {Internal}
+    ...                 Fill in l2 hardware data sys_ip, sys_username, sys_password, and testcase_dir.
+    ...                 Example:
+    ...                 | Fill In l2 HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Type Text           id=tour-server-add-l2-sys_ip       ${hw['sys_ip']}
+    Type Text           id=tour-server-add-l2-sys_username     ${hw['sys_username']}
+    Type Text           id=tour-server-add-l2-sys_password     ${hw['sys_password']}
+    Type Text           id=tour-server-add-l2-testcase_dir     ${hw['testcase_dir']}
+
+Accept EULA After Upgrade
+    [Documentation]     {External}
+    ...                 Accept EULA after upgrade. This keyword will wait 10 minutes for EULA header showing up.
+    ...                 Example:
+    ...                 | Accept EULA After Upgrade |
+    Wait Until Page Contains Element    id=hp-header-eula-name      timeout=600
+    Click   id=hp-eula-agree-button
+    Click   id=hp-eula-ok-button
+
+Open Directory
+    [Documentation]     {Internal}
+    ...                 Open snippet directory.
+    ...                 Example:
+    ...                 | Open Directory | Provisioning |
+    [Arguments]         ${dir}
+    Click               xpath=//a[text()="${dir}"]/preceding-sibling::ins[1]
+
+Add Snippet
+    [Documentation]     {External}
+    ...                 Add snippet to Test Layout section by double clicking snippet. ${snippet} is the snippet name shown in GUI layout. ${abs_path} is used in case user has duplicate snippet name. In this case, user should specify full path including directory name and json/sjcf file name. The ${abs_path} value is None in default.
+    ...                 Example:
+    ...                 | Open Directory | Provisioning |
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Open Directory | myrepo |
+    ...                 | Add Snippet | Copy Files | myrepo/copyfiles.json |
+    [Arguments]         ${snippet}  ${abs_path}=None
+    Run Keyword If      '${abs_path}' != 'None'
+    ...                 Double Click    xpath=//li[@path="/ci/webapps/cirrus/jcf/${abs_path}"]/a[text()="${snippet}"]
+    ...                 ELSE                Double Click        xpath=//a[text()="${snippet}"]
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Mouse Over          ${HEADER_MAIN_MENU}
+
+Add Snippet (In Development)
+    [Documentation]     {External}
+    ...                 Add snippet to Test Layout section by double clicking snippet. ${snippet} is the snippet name shown in GUI layout. ${abs_path} is used in case user has duplicate snippet name. In this case, user should specify full path including directory name and json/sjcf file name. The ${abs_path} value is None in default.
+    ...                 Example:
+    ...                 | Open Directory | Provisioning |
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Open Directory | myrepo |
+    ...                 | Add Snippet | Copy Files | myrepo/copyfiles.json |
+    [Arguments]         ${abs_path}
+    Import Library  String
+    Import Library  Collections
+    Go To Edit Test Plan Page
+    ${snippet}=     Fetch From Right    ${abs_path}     ${/}
+    ${path_str}=    Remove String   ${abs_path}     ${/}${snippet}
+    @{path}=    Split String    ${abs_path}     ${/}
+    Remove From List    ${path}     -1
+    :FOR    ${dir}  IN  @{path}
+    \   ${dir_state}=   Test If Directory Open  ${dir}
+    \   log to console  open directory ${dir} is ${dir_state}\n
+    \   Run Keyword If  '${dir_state}' == False
+    \   ...     Open Directory  ${dir}
+    Double Click        xpath=//li[contains(@path,"${path_str}")]/a[text()="${snippet}"]
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Mouse Over          ${HEADER_MAIN_MENU}
+
+Test If Directory Open
+    [Arguments]         ${dir}
+    Sleep   5
+    ${msg}=    Run Keyword And Expect Error    *
+    ...    Page Should Contain Element     xpath=//a[text()="${dir}"]/preceding-sibling::ins[1]
+    log to console  ${msg}\n
+    Should End With ${msg}  "should be visible, but it is not."
+    Run Keyword If  'should be visible, but it is not.' in '${msg}'
+    ...     Return From Keyword     False
+    ELSE    True
+
+Verify Snippet ${snippet} Added In Test Layout Order ${layout order}
+    [Documentation]     {External}
+    ...                 Verify snippet ${snippet} is added to Test Layout section in ${layout order} place.
+    ...                 Example:
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Verify Snippet sleeptest Added In Test Layout Order 1 |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    ${index}=      Evaluate    ${layout order}+${1}
+    ${order}=    Get Table Cell     ${TEST_LAYOUT_TABLE}    ${index}   1
+    Should Be Equal As Strings      ${order}        ${layout order}
+    ${teststep}=    Get Table Cell  ${TEST_LAYOUT_TABLE}    ${index}   2
+    Should Be Equal As Strings      ${teststep}     ${snippet}
+
+Verify Snippet In Order ${layout order} Status Should Be "${status}"
+    [Documentation]     {External}
+    ...                 Verify the status of the snippet in ${layout order} place is ${status}.
+    ...                 Example:
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Verify Snippet In Order 1 Status Should Be "Ready to Submit" |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    ${index}=      Evaluate    ${layout order}+${1}
+    ${stepvar}=    Get Table Cell      ${TEST_LAYOUT_TABLE}    ${index}   3
+    Should Be Equal As Strings      ${stepvar}        ${status}
+
+Click Order ${layout order} Snippet To Edit Ckeys
+    [Documentation]     {External}
+    ...                 Click snippet in ${layout order} place to open edit ckey window.
+    ...                 Example:
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Click Order 1 Snippet To Edit Ckeys |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click       ${TEST_LAYOUT_TABLE} > tbody > tr#snippet-${layout order} > td:nth-of-type(3) > span.variable
+    Page Should Contain Element    css=h1#hp-testplan-header
+
+Fillin Ckey ${ckey} With Value ${val}
+    [Documentation]     {External}
+    ...                 Fill in ckey attribute ${ckey} with value ${val}.
+    ...                 Example:
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Click Order 1 Snippet To Edit Ckeys |
+    ...                 | Fillin Ckey seconds With Value 5 |
+    Type Text           css=textarea#${ckey}     ${val}
+
+Fillin Input Type Ckey ${ckey} With Value ${val}
+    [Documentation]     {External}
+    ...                 Fill in ckey attribute ${ckey} with value ${val}.
+    ...                 Example:
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Click Order 1 Snippet To Edit Ckeys |
+    ...                 | Fillin Input Type Ckey seconds With Value 5 |
+    Type Text           css=input#${ckey}     ${val}
+
+Verify Ckey ${ckey} Value is ${val}
+    [Documentation]     {External}
+    ...                 Verify ckey attribute ${ckey} with value ${val}.
+    ...                 Example:
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Click Order 1 Snippet To Edit Ckeys |
+    ...                 | Fillin Ckey seconds With Value 5 |
+    ...                 | Verify Ckey seconds Value is 5 |
+    Element Should Contain  css=textarea#${ckey}     ${val}
+
+Click Save In Ckey Window
+    [Documentation]     {External}
+    ...                 Click Save button in Ckey window.
+    ...                 Example:
+    ...                 | Fillin Ckey seconds With Value 5 |
+    ...                 | Click Save In Ckey Window |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click   ${SAVE_BUTTON_IN_CKEY_WINDOW}
+
+Click Cancel In Ckey Window
+    [Documentation]     {External}
+    ...                 Click Cancel button in Ckey window.
+    ...                 Example:
+    ...                 | Fillin Ckey seconds With Value 5 |
+    ...                 | Click Cancel In Ckey Window |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click   ${CANCEL_BUTTON_IN_CKEY_WINDOW}
+
+Click Add SUT In SUT Section
+    [Documentation]     {External}
+    ...                 Move mouse to and click Add SUT(s) link in SUT section.
+    ...                 Example:
+    ...                 | Click Add SUT In SUT Section |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Wait For Ajax And Animation
+    Mouse Over   ${ADD_SUT_LINK_IN_SUT_SECTION}
+    Element Should Be Visible   ${ADD_SUT_LINK_IN_SUT_SECTION}
+    Click   ${ADD_SUT_LINK_IN_SUT_SECTION}
+    Page Should Contain Element     ${PICK_SUT_TABLE}
+
+Pick SUT
+    [Documentation]     {External}
+    ...                 Pick SUT from the Pick SUT(s) window and add it in the SUT section.
+    ...                 Example:
+    ...                 | Click Add SUT In SUT Section |
+    ...                 | Pick SUT | ${hw name} |
+    [Arguments]         ${hw name}
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click   xpath=//td[text()="${hw name}"]
+    Click   ${ADD_BUTTON_IN_PICK_SUT_WINDOW}
+
+Verify SUT Show Up In SUT Section Row ${row} With Correct Data ${hw}
+    [Documentation]     {External}
+    ...                 Verify the SUT shows up in row ${row} of the SUT section and verify the sut data ${hw} is correct.
+    ...                 Example:
+    ...                 | Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw} |
+    Table Row Should Contain    ${SUT_TABLE_IN_EDIT_TEST_PLAN}   ${row}   ${hw['name']}
+    Table Row Should Contain    ${SUT_TABLE_IN_EDIT_TEST_PLAN}   ${row}   ${hw['type']}
+    Table Row Should Contain    ${SUT_TABLE_IN_EDIT_TEST_PLAN}   ${row}   ${hw['desc']}
+
+Submit Job From Edit Test Plan Page 
+    [Documentation]     {External}
+    ...                 Submit job from edit test plan page and check the alert message. This keyword will return the job id.
+    ...                 Example:
+    ...                 | ${job id}= | Submit Job From Edit Test Plan Page |
+    ...                 | Monitor Job ${job id} Status Should Be pass In 30 Seconds |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click               ${ACTIONS_BUTTON_IN_EDIT_TEST_PLAN_PAGE}
+    Click               ${SUBMIT_IN_ACTIONS_OF_EDIT_TEST_PLAN_PAGE}
+    Wait Until Page Contains    Successful Message
+    ${message}=     Get Text    css=div.hp-prompt
+    ${match}=     Should Match Regexp     ${message}     Job [A-Za-z0-9.-]+_(\\w+)_(\\d+) is successfully added.
+    Click   ${OK_IN_JOB_SUBMISSION_POPUP_WINDOW}
+    @{words}=    Split String    ${message}
+    ${job id}=     Set Variable     ${words[1]}
+    log to console   ${job id}
+    [Return]    ${job id}
+
+Monitor Job ${jid} Status Should Be ${status} In ${timeout} Seconds
+    [Documentation]     {External}
+    ...                 Monitor job ${jid} status and check if the job status is ${status} in Job ID cell in left sidebar, detail job title, current stage cell, and job stage table.
+    ...                 Example:
+    ...                 | ${job id}= | Submit Job From Edit Test Plan Page |
+    ...                 | Monitor Job ${job id} Status Should Be pass In 30 Seconds |
+    Go To Job Status Page
+    @{words}=    Split String    ${jid}     separator=_
+    Wait Until Page Contains Element    xpath=//tr[contains(@class, "${jid}")]
+    Select Job      ${jid}
+    Sleep       ${timeout}
+   # Wait Until Page Contains Element    xpath=//tr[contains(@class, "${jid}")]/td/div[contains(@class, "hp-status-${status}")]
+   # Wait Until Page Contains Element     css=header.hp-details-header > div.hp-status-${status}
+    Wait Until Element Contains     css=td#tour-job-current-stage     ${status}
+   # Wait Until Page Contains Element        css=div.bundle-job-status-${status}
+
+Select Job 
+    [Documentation]     {External}
+    ...                 Select job from the left sidebar and optionally check if the job owner, test plan and sut are correct.
+    ...                 Example:
+    ...                 | Select Job | ci-005056987B37_administrator_808 |
+    ...                 | Select Job | ci-005056987B37_administrator_808 | sleeptest | autosut |
+    [Arguments]         ${jid}  ${testplan}=None    ${testsut}=None
+    Import Resource     ${CURDIR}/objects/cirrus_job_status.txt
+    @{words}=    Split String    ${jid}     separator=_
+    Table Should Contain    css=table#tour-job-master-table     ${words[2]}
+    Element Text Should Be  xpath=//tr[contains(@class, "${jid}")]/td[3]/div   ${words[1]}
+    Click               xpath=//tr[contains(@class, "${jid}")]
+    Run Keyword If      '${testplan}' != 'None'
+    ...                 Element Text Should Be  xpath=//tr[contains(@class, "${jid}")]/td[4]/div    ${testplan}
+    Run Keyword If      '${testsut}' != 'None'
+    ...                 Element Text Should Be  xpath=//tr[contains(@class, "${jid}")]/td[5]/div    ${testsut}
+
+Save Test Plan As ${testplan name}
+    [Documentation]     {External}
+    ...                 Save test plan with given name ${testplan name}.
+    ...                 Example:
+    ...                 | Save Test Plan As testplan1 |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click               ${ACTIONS_BUTTON_IN_EDIT_TEST_PLAN_PAGE}
+    Click               ${SAVE_AS_IN_ACTIONS_OF_EDIT_TEST_PLAN_PAGE}
+    Wait Until Page Contains    Please Input A New Test Plan Name
+    Type Text           ${FILL_IN_TEST_PLAN_NAME}     ${testplan name}
+    Click               ${OK_BUTTON_IN_SAVE_TESTPLAN_NAME_WINDOW}
+    Wait For Ajax And Animation
+    Table Should Contain    css=table#tour-testplan-master-table    ${testplan name}
+ 
+Submit ${testplan} From Manage Test Plans Page
+    [Documentation]     {External}
+    ...                 Submit testplan ${testplan} from Manage Test Plans page.
+    ...                 Example:
+    ...                 | ${job id}= | Submit testplan1 From Manage Test Plans Page |
+    Import Resource     ${CURDIR}/objects/cirrus_manage_testplan.txt
+    Select Test Plan    ${testplan}
+    Click               ${ACTIONS_BUTTON_IN_MANAGE_TEST_PLANS_PAGE}
+    Click               ${SUBMIT_IN_ACTIONS_OF_MANAGE_TEST_PLANS_PAGE}
+    Wait Until Page Contains    Successful Message
+    ${message}=     Get Text    css=div.hp-prompt
+    ${match}=     Should Match Regexp     ${message}     Job [A-Za-z0-9.-]+_(\\w+)_(\\d+) is successfully added.
+    Click   ${OK_IN_JOB_SUBMISSION_POPUP_WINDOW}
+    @{words}=    Split String    ${message}
+    ${job id}=     Set Variable     ${words[1]}
+    log to console   ${job id}
+    [Return]    ${job id}
+
+Select Test Plan
+    [Documentation]     {External}
+    ...                 Select testplan from the left sidebar and optionally check test plan owner.
+    ...                 Example:
+    ...                 | Select Test Plan | testplan1 |
+    [Arguments]         ${testplan}     ${owner}=None
+    Go To Manage Test Plans Page
+    Click               xpath=//td[text()="${testplan}"]
+    Run Keyword If      '${owner}' != 'None'
+    ...                 Element Text Should Be  xpath=//td[text()="${testplan}"]/following-sibling::td[1]     ${owner}
+
+Verify Test Plan ${testplan} Has Correct Data ${data}
+    [Documentation]     {External}
+    ...                 Verify if the test plan ${testplan} has correct test plan data ${data}. ${data} is a json file conatining testplan data.
+    ...                 Example:
+    ...                 | ${testplan data}= | Get Data From JSON  testplan.json |
+    ...                 | Verify Test Plan testplan1 Has Correct Data ${testplan data} |
+    Select Test Plan    ${testplan}     ${data['owner']}
+    Element Text Should Be      css=h1#tour-testplan-details-title      ${data['name']}
+    ${jobgroup}=    Get Table Cell     css=table#attribute-table    2   2
+    Should Be Equal As Strings      ${jobgroup}        ${data['jobgroup']}
+    ${sut_required}=    Get Table Cell     css=table#attribute-table    3   2
+    Should Be Equal As Strings      ${sut_required}        ${data['sut_required']}
+    Compare Testplan Table Values   css=table#snippet-table     ${data['snippets']}
+    Compare Testplan Variable Values    ${data['variables']}
+    Compare Testplan Table Values    css=table#cirrus-suts     ${data['suts']}
+
+Compare Testplan Variable Values
+    [Documentation]     {Internal}
+    ...                 Compare test plan variable data. 
+    ...                 Example:
+    ...                 | Compare Testplan Variable Values | ${data['variables']} |
+    [arguments]     ${data}
+    :For    ${item}     In      @{data}
+    \   Table Should Contain    css=table#variable-table    ${item}
+
+Compare Testplan Table Values
+    [Documentation]     {Internal}
+    ...                 Compare testplan data values with json file testplan. ${table locator} is the test plan table locator and ${data} is the json format file contenting testplan data in detail.
+    ...                 Example:
+    ...                 | ${data}= | Get Data From JSON  testplan.json |
+    ...                 | Compare Testplan Table Values | css=table#snippet-table | ${data['snippets']} |
+    [arguments]     ${table locator}       ${data}
+    ${row}=    Set Variable    ${2}
+    ${column}=    Set Variable    ${1}
+    ${length}=    Get Length  ${data}
+    :For    ${index}     In Range     0   ${length-1}
+    \   ${cell}=    Get Table Cell  ${table locator}    ${row}  ${column}
+    # Not yet checked skip checkbox.
+    \   Should Be Equal As Strings      ${cell}     ${data[${index}]}
+    \   ${col_end}=     Evaluate    ${column}%4
+    \   ${column}=      Set Variable If     ${col_end} == 0    ${1}     ${column + 1}
+    \   ${row}=         Set Variable If     ${col_end} == 0    ${row + 1}   ${row}
+
+Add New Test Plan By Clicking New Test Plan Button
+    [Documentation]     {External}
+    ...                 Click +New Testplan button from Manage Test Plans page to add a new test plan.
+    ...                 Example:
+    ...                 | Add New Test Plan By Clicking New Test Plan Button |
+    ...                 | Add Snippet | sleeptest |
+    Go To Manage Test Plans Page
+    Import Resource     ${CURDIR}/objects/cirrus_manage_testplan.txt
+    Click               ${NEW_TESTPLAN_BUTTON_IN_MANAGE_TEST_PLANS_PAGE}
+    Wait Until Page Contains    Edit Test Plan
+
+Edit Test Plan ${testplan} From Manage Test Plans Page
+    [Documentation]     {External}
+    ...                 Click Edit button under the Actions in the Manage Test Plans page to edit test plan.
+    ...                 Example:
+    ...                 | Edit Test Plan testplan1 From Manage Test Plans Page |
+    ...                 | Add Snippet | sleeptest |
+    Import Resource     ${CURDIR}/objects/cirrus_manage_testplan.txt
+    Select Test Plan    ${testplan}
+    Click               ${ACTIONS_BUTTON_IN_MANAGE_TEST_PLANS_PAGE}
+    Click               ${EDIT_IN_ACTIONS_OF_MANAGE_TEST_PLANS_PAGE}
+
+Save Updated Test Plan
+    [Documentation]     {External}
+    ...                 Click Save button under the Actions in the Edit Test Plan page after modifying an existing test plan.
+    ...                 Example:
+    ...                 | Save Test Plan As testplan1 |
+    ...                 | Edit Test Plan testplan1 From Manage Test Plans Page |
+    ...                 | Save Updated Test Plan |
+    Click               ${ACTIONS_BUTTON_IN_EDIT_TEST_PLAN_PAGE}
+    Click               ${SAVE_IN_ACTIONS_OF_EDIT_TEST_PLAN_PAGE}
+
+Delete Test Plan ${testplan}
+    [Documentation]     {External}
+    ...                 Delete test plan from Manage Test Plans page.
+    ...                 Example:
+    ...                 | Delete Test Plan testplan1 |
+    ...                 | Verify Test Plan testplan1 Not Exists |
+    Import Resource     ${CURDIR}/objects/cirrus_manage_testplan.txt
+    Select Test Plan    ${testplan}
+    Click               ${ACTIONS_BUTTON_IN_MANAGE_TEST_PLANS_PAGE}
+    Click               ${DELETE_IN_ACTIONS_OF_MANAGE_TEST_PLANS_PAGE}
+    Wait Until Page Contains    Continue with delete?
+    Click               ${YES_DELETE_IN_DELETE_TEST_PLAN_WINDOW}
+
+Verify Test Plan ${testplan} Not Exist
+    [Documentation]     {External}
+    ...                 Verify test plan ${testplan} does not exist in the left sidebar in the Manage Test Plans page.
+    ...                 Example:
+    ...                 | Delete Test Plan testplan1 |
+    ...                 | Verify Test Plan testplan1 Not Exists |
+    Wait Until Page Does Not Contain Element    xpath=//table[id="tour-testplan-master-table"]//td[text()="${testplan}"]
+
+Click Dropdown List Of Ckey ${ckey}
+    [Documentation]     {External}
+    ...                 Open dropdown list of the ckey ${ckey} in the ckey window.
+    ...                 Example:
+    ...                 | Click Order 1 Snippet To Edit Ckeys |
+    ...                 | Click Dropdown List Of Ckey altair_auto_server |
+    ...                 | Select List Item "altair" From altair_auto_server |
+    Click               css=select#${ckey} + button
+    Page Should Contain Element     css=div.ui-multiselect-filter    
+
+Select List Item "${item}" From ${ckey}
+    [Documentation]     {External}
+    ...                 Select list item ${item} from ckey ${ckey} dropdown list.
+    ...                 Example:
+    ...                 | Click Order 1 Snippet To Edit Ckeys |
+    ...                 | Click Dropdown List Of Ckey altair_auto_server |
+    ...                 | Select List Item "altair" From altair_auto_server |
+    Wait Until Page Contains    ${item}
+    #Click               xpath=//span[text()="${item}"]
+    Click               xpath=//span[contains(text(),"${item}")]
+    Element Should Contain      css=select#${ckey} + button > span + span   ${item}
+
+Select Checkbox With Text
+    [Documentation]     {External}
+    ...                 Select Checkbox with text ${text}.
+    ...                 Example:
+    ...                 | Select Checkbox With Text | /home/tenggo/rg_test/tests/hello.txt |
+    [Arguments]         ${text}
+    Select Checkbox     css=input[value="${text}"]
+
+Unselect Checkbox With Text
+    [Documentation]     {External}
+    ...                 Unselect Checkbox with text ${text}.
+    ...                 Example:
+    ...                 | Unselect Checkbox With Text | /home/tenggo/rg_test/tests/hello.txt |
+    [Arguments]         ${text}
+    Unselect Checkbox     css=input[value="${text}"]
+
+Verify Checkbox With Text "${text}" Selected
+    [Documentation]     {External}
+    ...                 Verify if checkbox with text ${text} is selected.
+    ...                 Example:
+    ...                 | Verify Checkbox With Text "/home/tenggo/rg_test/tests/hello.txt" Selected |
+    Checkbox Should Be Selected     css=input[value="${text}"]
+
+Verify Checkbox With Text "${text}" Not Selected
+    [Documentation]     {External}
+    ...                 Verify if checkbox with text ${text} is not selected.
+    ...                 Example:
+    ...                 | Verify Checkbox With Text "/home/tenggo/rg_test/tests/hello.txt" Not Selected |
+    Checkbox Should Not Be Selected     css=input[value="${text}"]
+
+Add Selected Checkbox To Right Side
+    [Documentation]     {External}
+    ...                 Click Add Selected button in the 2 side selection window.
+    ...                 Example:
+    ...                 | Add Selected Checkbox To Right Side |
+    Click       css=p.AddOne
+
+Add All Checkboxes To Right Side
+    [Documentation]     {External}
+    ...                 Click Add All button in the 2 side selection window.
+    ...                 Example:
+    ...                 | Add All Checkboxes To Right Side |
+    Click       css=p.AddAll
+
+Remove Selected Checkbox To Left Side
+    [Documentation]     {External}
+    ...                 Click Remove Selected button in the 2 side selection window.
+    ...                 Example:
+    ...                 | Remove Selected Checkbox To Left Side |
+    Click       css=p.RemoveOne
+
+Remove All Checkboxes To Left Side
+    [Documentation]     {External}
+    ...                 Click Remove All button in the 2 side selection window.
+    ...                 Example:
+    ...                 | Remove All Checkboxes To Left Side |
+    Click       css=p.RemoveAll
+
+Click Check All Uncheck All
+    [Documentation]     {External}
+    ...                 Click Check All/Uncheck All button in the 2 side selection window.
+    ...                 Example:
+    ...                 | Click Check All Uncheck All |
+    Click       css=p.CheckAll
+
+Verify Option ${layout} In Right Side
+    [Documentation]     {External}
+    ...                 Verify if the selected options show up in thw right side of the 2 side selection window.
+    ...                 Example:
+    ...                 | Verify Option ${layout} In Right Side |
+    Run Keyword And Return If      ${layout} == []
+    ...     List Should Have No Selections  css=select#testcasems2side__dx
+    ${list}=    Get Selected List Values    css=select#testcasems2side__dx
+    Lists Should Be Equal   ${layout}   ${list}
+
+Click Force Refresh For Ckey ${ckey}
+    [Documentation]     {External}
+    ...                 Click force refresh for ckey ${ckey}.
+    ...                 Example:
+    ...                 | Click Force Refresh For Ckey testattr |
+    Click               css=img[for="${ckey}"]
+
+Change ${flow control} Value To ${value} For Order ${order} Snippet
+    [Documentation]     {External}
+    ...                 This keyword changes flow control options. ${flow control} values can be Pass or Fail. ${value} is the dropdown list value and can be _next, _quit, _abort , and numberic values such as 1, 2, 3. ${order} is the snippet order in GUI. 
+    ...                 Example:
+    ...                 | Change Pass Value To 4 For Order 1 Snippet |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    ${flow control}=    Convert To Lowercase    ${flow control}
+    ${table index}=    Set Variable If      '${flow control}' == 'pass'    5   6
+    Click       ${TEST_LAYOUT_TABLE} > tbody > tr#snippet-${order} > td:nth-of-type(${table index}) div.hp-value 
+    Wait Until Element Is Visible       xpath=//tr[@id="snippet-${order}"]/td[${table index}]//ol[@class="hp-options"]/li/span[text()="${value}"]
+    Click       xpath=//tr[@id="snippet-${order}"]/td[${table index}]//ol[@class="hp-options"]/li/span[text()="${value}"]
+
+Set Ckey ${ckey} As Global
+    [Documentation]     {External}
+    ...                 Set Ckey ${ckey} As Global.
+    ...                 Example:
+    ...                 | Set Ckey seconds As Global|
+    Select Checkbox     css=input#is_global_${ckey}
+
+Verify Ckey ${ckey} Set As Global
+    [Documentation]     {External}
+    ...                 Verify Ckey ${ckey} Set As Global.
+    ...                 Example:
+    ...                 | Verify Ckey seconds Set As Global|
+    Checkbox Should Be Selected     css=input#is_global_${ckey}
+
+Verify Ckey ${ckey} Set As Local
+    [Documentation]     {External}
+    ...                 Verify Ckey ${ckey} Set As Local.
+    ...                 Example:
+    ...                 | Verify Ckey seconds Set As Local|
+    Checkbox Should Not Be Selected     css=input#is_global_${ckey}
+
+Verify Test Plan ${testplan} Ckey ${ckey} is Global
+    [Documentation]     {External}
+    ...                 Verify if the test plan ${testplan} ckey ${ckey} is global.
+    ...                 Example:
+    ...                 | Verify Test Plan ${testplan} Ckey ${ckey} is Global |
+    Select Test Plan    ${testplan}
+    Element Text Should Be     xpath=//td[text()='${ckey}']/preceding-sibling::td[1]     Global
+
+Submit Job From Edit Test Plan Page Unsuccessfully
+    [Documentation]     {External}
+    ...                 Submit job from edit test plan page and check the alert message.
+    ...                 Example:
+    ...                 | Submit Job From Edit Test Plan Page |
+    ...                 | Verify Error Message Show Up In The Page |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click               ${ACTIONS_BUTTON_IN_EDIT_TEST_PLAN_PAGE}
+    Click               ${SUBMIT_IN_ACTIONS_OF_EDIT_TEST_PLAN_PAGE}
+    Wait Until Page Contains     Invalid Test Plan
+    Click   ${OK_IN_JOB_SUBMISSION_POPUP_WINDOW}
+
+Submit ${testplan} From Manage Test Plans Page Unsuccessfully
+    [Documentation]     {External}
+    ...                 Submit testplan ${testplan} from Manage Test Plans page.
+    ...                 Example:
+    ...                 | ${job id}= | Submit testplan1 From Manage Test Plans Page |
+    Import Resource     ${CURDIR}/objects/cirrus_manage_testplan.txt
+    Select Test Plan    ${testplan}
+    Click               ${ACTIONS_BUTTON_IN_MANAGE_TEST_PLANS_PAGE}
+    Click               ${SUBMIT_IN_ACTIONS_OF_MANAGE_TEST_PLANS_PAGE}
+    Wait Until Page Contains     Invalid Test Plan
+    Click   ${OK_IN_JOB_SUBMISSION_POPUP_WINDOW}
+
+Submit ${testplan} From Manage Test Plans Page Error for ${errinfo}
+    [Documentation]     {External}
+    ...                 Submit ${testplan} From Manage Test Plans Page Error for ${errinfo}.
+    ...                 Example:
+    ...                 | Submit test_test From Manage Test Plans Page Error for Invalid Test Plan |
+    Import Resource     ${CURDIR}/objects/cirrus_manage_testplan.txt
+    Select Test Plan    ${testplan}
+    Click               ${ACTIONS_BUTTON_IN_MANAGE_TEST_PLANS_PAGE}
+    Click               ${SUBMIT_IN_ACTIONS_OF_MANAGE_TEST_PLANS_PAGE}
+    Wait Until Page Contains    ${errinfo}
+    Click   ${OK_IN_JOB_SUBMISSION_POPUP_WINDOW}
+
+Go To Settings Page
+    [Documentation]     {External}
+    ...                 Navigate to Settings page.
+    ...                 Example:
+    ...                 | Go To Settings Page |
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Click               ${HEADER_MAIN_MENU}
+    Click               ${HEADER_SETTINGS_LINK}
+
+Select Upgrade Appliance
+    [Documentation]     {External}
+    ...                 Select Upgrade Appliance.
+    ...                 Example:
+    ...                 | Select Upgrade Appliance |
+    Click               id=hp-settings-actions
+    Click               id=hp-update-appliance
+
+Continue Upgrade Appliance
+    [Documentation]     {External}
+    ...                 Continue Upgrade Appliance.
+    ...                 Example:
+    ...                 | Continue Upgrade Appliance |
+    [Arguments]         ${version}     ${filename}
+    Wait For Ajax And Animation
+    Element Text Should Be    id=fs-settings-update-install-box-filename    ${filename}
+    Element Should Contain    id=fs-settings-update-install-box-version    ${version}
+    Click                     id=fs-settings-update-installUpdate
+
+Wait Upgrade Complete
+    [Documentation]     {External}
+    ...                 Wait Upgrade Complete.
+    ...                 Example:
+    ...                 | Wait Upgrade Complete |
+    Wait Until Page Contains    Updating
+    Import Resource     ${CURDIR}/objects/cirrus_header.txt
+    Wait Until Page Contains Element    ${HEADER_MAIN_MENU}     timeout=3600
+
+Confirm Upgrade To ${version} Successful
+    [Documentation]     {External}
+    ...                 Confirm Upgrade To 1.11.4 Successful.
+    ...                 Example:
+    ...                 | Confirm Upgrade To 1.11.4 Successful |
+    Element Should Contain    id=fs-settings-appliance-overview-version    ${version}
+
+Click Not Required Checkbox
+    [Documentation]     {External}
+    ...                 Click Not Required checkbox in SUT section of the Edit Test Plan.
+    ...                 Example:
+    ...                 | Click Not Required Checkbox |
+    Click   id=hp-testplanedit-sut-require
+
+Click Skip Checkbox Of Snippet Order ${layout order}
+    [Documentation]     {External}
+    ...                 Click skip checkbox of snippet order ${layout order}.
+    ...                 Example:
+    ...                 | Add Snippet | sleeptest |
+    ...                 | Click skip checkbox of snippet order 1 |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click       ${TEST_LAYOUT_TABLE} > tbody > tr#snippet-${layout order} > td.skip > input.hp-snippet-skip
+
+Click Job Group Checkbox
+    [Documentation]     {External}
+    ...                 Click job group checkbox.
+    ...                 Example:
+    ...                 | Click Job Group Checkbox |
+    Click   id=hp-testplanedit-job-group
+
+Verify Job Group Checkbox Selected
+    [Documentation]     {External}
+    ...                 Verify if job group checkbox is selected.
+    ...                 Example:
+    ...                 | Verify Job Group Checkbox Selected |
+    Checkbox Should Be Selected     id=hp-testplanedit-job-group
+
+Get ${child index} Child Job ID From ${jid} Parent Job
+    [Documentation]     {External}
+    ...                 Get child job id from parent.
+    ...                 Example:
+    ...                 | ${job id}= | Submit Job From Edit Test Plan Page |
+    ...                 | Get 1 Child Job From ${job id} Parent Job |
+    Import Resource     ${CURDIR}/objects/cirrus_job_status.txt
+    Go To Job Status Page
+    Wait Until Page Contains Element    xpath=//tr[contains(@class, "${jid}")]
+    Select Job      ${jid}
+    ${child index}=      Evaluate    ${child index}+${1}
+    ${child job id}=    Get Table Cell     ${GROUP_JOBS_TABLE_IN_JOB_STATUS}  ${child index}   2
+    log to console    Child Job ID:${child job id}
+    [Return]    ${child job id}
+
+Verify Skip Checkbox Of Snippet Order ${layout order} Selected
+    [Documentation]     {External}
+    ...                 Verify skip checkbox of snippet order ${layout order} is selected.
+    ...                 Example:                 
+    ...                 | Click skip checkbox of snippet order 1 |
+    ...                 | Verify skip checkbox of snippet order 1 Selected |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Checkbox Should Be Selected     ${TEST_LAYOUT_TABLE} > tbody > tr#snippet-${layout order} > td.skip > input.hp-snippet-skip
+
+Submit Job From Edit Test Plan Page With Expected Error Message
+    [Documentation]     {External}
+    ...                 Submit job from edit test plan page and check the error messaged is as expected.
+    ...                 Example:
+    ...                 | Submit Job From Edit Test Plan Page With Expected Error Message |
+    Import Resource     ${CURDIR}/objects/cirrus_edit_testplan.txt
+    Click               ${ACTIONS_BUTTON_IN_EDIT_TEST_PLAN_PAGE}
+    Click               ${SUBMIT_IN_ACTIONS_OF_EDIT_TEST_PLAN_PAGE}
+    Wait Until Page Contains    Error Message
+    ${message}=     Get Text    css=div.hp-prompt
+    ${match}=     Should Contain     ${message}     Job add process encounter errors. Message:Job submit error: 'cirrus_id'
+    Click   ${OK_IN_JOB_SUBMISSION_POPUP_WINDOW}
+
+Export Hardware
+    [Documentation]     {External}
+    ...                 Export Specified Hardware.
+    ...                 Example:
+    ...                 | Export Hardware ${hw} |
+    [Arguments]         ${hw}
+    Click    css=div.hp-master-add > a[href="#/server/export_hardwares"]
+    :FOR    ${per_hw}    IN    @{hw}
+    \    Select Checkbox    xpath=//td[text()="${per_hw['name']}"]/preceding-sibling::td[1]/input
+    Click    css=input#cirrus-server-export-hw-file
+    Click    css=div.hp-prompt > a[id="file_download"]
+    ${file link}=    Get Element Attribute    css=div.hp-prompt > a[id="file_download"]@href
+    LOG    ${file link}
+    ${match}=     Should Match Regexp     ${file link}     (\\w+):\/\/([^/:]+)\/rest\/cirrus\/export_hardware\/export_hardware_(\\d+)-(\\d+)-(\\d+):(\\d+):(\\d+)\.json
+    @{words}=    Split String    ${file link}    /
+    ${file name}=    Set Variable    ${words[6]}
+    LOG    ${file name}
+    ${export_hw_file}=    Replace String    ${file name}    :    -
+    LOG    ${export_hw_file}
+    Click    css=input#tour-server-export-download-ok
+    [return]    ${export_hw_file}
+
+
+Verify Export Hardware File ${export_hardware_file} Has Correct Data ${hw}
+    [Documentation]     {External}
+    ...                 Verify if the file ${export_hardware_file} has correct data ${hw}. ${hw} is a json file conatining testplan data.
+    ...                 Example:
+    ...                 | ${export_hardware_file}= | Export Hardware  ${hw} |
+    ...                 | Verify Export Hardware File export_hardware_2016-01-1806-43-42.json Has Correct Data ${hw}
+    ${data}=    Get Data From Json    ${export_hardware_file}
+    ${data_len}=    Get Length    ${data}
+    LOG    ${data_len}
+    Length Should Be    ${hw}    ${data_len}
+    :FOR    ${per_hw}    IN    @{data}
+    \    Log To Console    Verify HW Data ${per_hw['name']}...
+    \    Run Keyword If    '${per_hw['type']}' == 'ilo'    Verify ilo HW Data    ${per_hw}
+    \    Run Keyword If    '${per_hw['type']}' == 'altair'    Verify altair HW Data    ${per_hw}
+    \    Run Keyword If    '${per_hw['type']}' == 'robogalaxy'    Verify robogalaxy HW Data    ${per_hw}
+    \    Run Keyword If    '${per_hw['type']}' == 'l2a'    Verify l2a HW Data    ${per_hw}
+    \    Run Keyword If    '${per_hw['type']}' == 'l2'    Verify l2 HW Data    ${per_hw}
+
+Verify ilo HW Data
+    [Documentation]     {Internal}
+    ...                 Verify ilo hardware data ilo_ip, ilo_user, ilo_password, inventory_limit, and inventory_interval..
+    ...                 Example:
+    ...                 | Verify ilo HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Verify ${hw} Attribute ilo_ip Should Be ${hw['ilo_ip']}
+    Verify ${hw} Attribute ilo_user Should Be ${hw['ilo_user']}
+    Verify ${hw} Attribute inventory_limit Should Be ${hw['inventory_limit']}
+    Verify ${hw} Attribute inventory_interval Should Be ${hw['inventory_interval']}
+
+Verify altair HW Data
+    [Documentation]     {Internal}
+    ...                 Verify altair hardware data sys_ip, sys_username, sys_password..
+    ...                 Example:
+    ...                 | Verify altair HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Verify ${hw} Attribute sys_ip Should Be ${hw['sys_ip']}
+    Verify ${hw} Attribute sys_username Should Be ${hw['sys_username']}
+
+Verify robogalaxy HW Data
+    [Documentation]     {Internal}
+    ...                 Verify robogalaxy hardware data  sys_ip, sys_username, sys_password, os_family, and rg_root..
+    ...                 Example:
+    ...                 | Verify robogalaxy HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Verify ${hw} Attribute sys_ip Should Be ${hw['sys_ip']}
+    Verify ${hw} Attribute sys_username Should Be ${hw['sys_username']}
+    Verify ${hw} Attribute os_family Should Be ${hw['os_family']}
+    Verify ${hw} Attribute rg_root Should Be ${hw['rg_root']}
+
+Verify l2a HW Data
+    [Documentation]     {Internal}
+    ...                 Verify l2a hardware data svn_sys_ip, svn_user, svn_pwd, nfs_sys_ip, nfs_user, nfs_pwd, and web_sys_ip..
+    ...                 Example:
+    ...                 | Verify l2a HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Verify ${hw} Attribute svn_sys_ip Should Be ${hw['svn_sys_ip']}
+    Verify ${hw} Attribute svn_user Should Be ${hw['svn_user']}
+    Verify ${hw} Attribute nfs_sys_ip Should Be ${hw['nfs_sys_ip']}
+    Verify ${hw} Attribute nfs_user Should Be ${hw['nfs_user']}
+    Verify ${hw} Attribute web_sys_ip Should Be ${hw['web_sys_ip']}
+
+Verify l2 HW Data
+    [Documentation]     {Internal}
+    ...                 Verify l2 hardware data  sys_ip, sys_username, sys_password, and testcase_dir..
+    ...                 Example:
+    ...                 | Verify l2 HW Data | ${hw} |
+    [Arguments]         ${hw}
+    Verify ${hw} Attribute sys_ip Should Be ${hw['sys_ip']}
+    Verify ${hw} Attribute sys_username Should Be ${hw['sys_username']}
+    Verify ${hw} Attribute testcase_dir Should Be ${hw['testcase_dir']}
+
+Import Hardware
+    [Documentation]     {External}
+    ...                 Import Specified Hardware.
+    ...                 Example:
+    ...                 | Import Hardware ${hw_file} |
+    [Arguments]         ${hw_file}
+    Go To Hardware Management Page
+    Click    css=div.hp-master-add > a[href="#/server/import_hardwares"]
+    Choose File    css=input.hp-button.hp-upload-file-choose    ${hw_file}
+    Click    id=cirrus-server-import-hw-file
+    Click    css=footer > div > button
+
+Verify Import Hardware Has Correct Data
+    [Documentation]     {External}
+    ...                 Verify Import Hardware Has Correct Data ${hw}. ${hw} is a json file conatining testplan data.
+    ...                 Example:
+    ...                 | ${hw}=    Get Data From JSON ${CURDIR}/testdata/import_hardware_h.json |
+    ...                 | Verify Import Hardware Has Correct Data ${hw}|
+    [Arguments]         ${hw}
+    :FOR    ${per_hw}    IN    @{hw}
+    \    Log To Console    Verify HW Data ${per_hw['name']}...
+    \    Run Keyword If    '${per_hw['type']}' == 'ilo'    Verify ilo HW Data    ${per_hw}
+    \    Run Keyword If    '${per_hw['type']}' == 'altair'    Verify altair HW Data    ${per_hw}
+    \    Run Keyword If    '${per_hw['type']}' == 'robogalaxy'    Verify robogalaxy HW Data    ${per_hw}
+    \    Run Keyword If    '${per_hw['type']}' == 'l2a'    Verify l2a HW Data    ${per_hw}
+    \    Run Keyword If    '${per_hw['type']}' == 'l2'    Verify l2 HW Data    ${per_hw}
+
+Reset Hardware Manager
+    [Documentation]     {External}
+    ...                 Reset Hardware Manager filter.
+    ...                 Example:
+    ...                 | Reset Hardware Manager |
+    Click    css=a.hp-filter-reset
+
+Export TestPlan
+    [Documentation]     {External}
+    ...                 Export TestPlan.
+    ...                 Example:
+    ...                 | Export TestPlan ${testplan} |
+    [Arguments]         ${testplan}
+    Go To Manage Test Plans Page
+    Click    css=div.hp-master-add > a[href="#/testplan/export_testplan"]
+    :FOR    ${per_testplan}    IN    @{testplan}
+    \    Select Checkbox    xpath=//td[text()="${per_testplan}"]/preceding-sibling::td[1]/input
+    Click    css=#cirrus-testplan-export-hw-file
+    Click    css=div.hp-prompt > a[id="file_download"]
+    ${file link}=    Get Element Attribute    css=div.hp-prompt > a[id="file_download"]@href
+    LOG    ${file link}
+    ${match}=     Should Match Regexp     ${file link}    (\\w+):\/\/([^/:]+)\/rest\/cirrus\/export_testplan\/export_testplan_(\\d+)-(\\d+)-(\\d+):(\\d+):(\\d+)\.json
+    @{words}=    Split String    ${file link}    /
+    ${file name}=    Set Variable    ${words[6]}
+    LOG    ${file name}
+    ${export_tp_file}=    Replace String    ${file name}    :    -
+    LOG    ${export_tp_file}
+    Click    css=#tour-server-export-download-ok
+    [return]    ${export_tp_file}
+
+Import TestPlan
+    [Documentation]     {External}
+    ...                 Import TestPlan.
+    ...                 Example:
+    ...                 | Import TestPlan ${testplan_file} |
+    [Arguments]         ${testplan_file}
+    Go To Manage Test Plans Page
+    Click    css=div.hp-master-add > a[href="#/testplan/import_testplan"]
+    Choose File    css=input.hp-button.hp-upload-file-choose    ${testplan_file}
+    Click    id=cirrus-testplan-import-hw-file
+    Click    css=footer > div > button
+
+Verify Test Plan File ${testplan_file} Has Correct Data
+    [Documentation]     {External}
+    ...                 Verify if the file ${testplan_file} has correct data.
+    ...                 Example:
+    ...                 | ${export_testplan_file}= | Export TestPlan    test_sample |
+    ...                 | Verify Export TestPlan File  ${export_testplan_file} Has Correct Data
+    Go To Manage Test Plans Page
+    ${data}=    Get Data From Json    ${testplan_file}
+    :FOR    ${testplan}    IN    @{data}
+    \    ${testplan_data}=    Convert Test Plan Data    ${testplan}
+    \    Log To Console    Verify Test Plan ${testplan_data['name']}...
+    \    Verify Test Plan ${testplan_data['name']} Has Correct Data ${testplan_data}
+
+Convert Test Plan Data
+    [Documentation]     {External}
+    ...                 Convert Test Plan Data to match Verify Test Plan ${testplan} Has Correct Data ${data}.
+    ...                 Example:
+    ...                 | ${testplan data}= | Get Data From JSON    export_testplan_2016-05-1707-25-36.json |
+    ...                 | ${testplan_data}= | Convert Test Plan Data    ${testplan data[0]} |
+    ...                 | Verify Test Plan ${testplan_data['name']} Has Correct Data ${testplan_data} |
+    [Arguments]         ${testplan}
+    ${jobgroup_data}=    Set Variable If   'job_group' in ${testplan}    Yes    No
+    ${sut_required_data}=    Set Variable If    ${testplan['info']['sut_required']} == True    Yes    No
+    ${snippet_index}=    Set Variable    ${1}
+    @{snippets_data}=    Create List
+    @{loop_data}=    Set Variable    ${testplan['include']}
+    :FOR    ${snippet}    IN     @{loop_data}
+    \    Append To List    ${snippets_data}    ${snippet_index}
+    \    Append To List    ${snippets_data}    ${snippet['name']}
+    \    Append To List    ${snippets_data}    ${snippet['status']}
+    \    Append To List    ${snippets_data}    ${EMPTY}
+    \    ${snippet_index}=    Set Variable    ${snippet_index + 1}
+    LOG    ${snippets_data}
+    ${local_keys}=    Get Dictionary Keys    ${testplan['local']}
+    ${variables_data}=    Set Variable    ${local_keys}
+    :FOR    ${local_key}    IN    @{local_keys}
+    \    ${variable_names}=    Get Dictionary Keys    ${testplan['local']['${local_key}']}
+    \    ${variable_values}=    Get Dictionary Values    ${testplan['local']['${local_key}']}
+    \    ${variables_data}=    Combine Lists    ${variables_data}    ${variable_names}
+    \    ${variables_data}=    Combine Lists    ${variables_data}    ${variable_values}
+    LOG    ${variables_data}
+    @{suts_data}=    Create List
+    ${sut_index}=    Set Variable    ${1}
+    ${loop_data}=    Get Dictionary Values    ${testplan['suts']}
+    LOG    ${loop_data}
+    :FOR  ${sut}   IN  @{loop_data}
+    \    LOG    ${sut}
+    \    Append To List    ${suts_data}    ${sut_index}
+    \    Append To List    ${suts_data}    ${sut['name']}
+    \    Append To List    ${suts_data}    ${sut['type']}
+    \    Append To List    ${suts_data}    ${sut['desc']}
+    \    ${sut_index} =    Set Variable    ${sut_index + 1}
+    LOG    ${suts_data}
+    &{testplan_data}=    Create Dictionary    name=${testplan['info']['name']}    owner=${testplan['info']['login_name']}    jobgroup=${jobgroup_data}    sut_required=${sut_required_data}    snippets=${snippets_data}    variables=${variables_data}    suts=${suts_data}
+    LOG    ${testplan_data}
+    [return]    ${testplan_data}
+
+Edit Repository Management
+    [Documentation]     {External}
+    ...                 Go to Settings page and edit repository.
+    ...                 Example:
+    ...                 | Edit Repository Management |
+    Go To Settings Page
+    Mouse Over          css=a[href="#/settings/edit/reposerver"]
+    Element Should Be Visible   css=a[href="#/settings/edit/reposerver"]
+    Click Element               css=a[href="#/settings/edit/reposerver"]
+    Page Should Contain Element     id=hp-settings-edit-create
+
+Create Repository
+    [Documentation]     {External}
+    ...                 Click Create Repository button and create Repository with ${repo_name}, ${repo_url}, ${repo_user}, and ${repo_pw} in ${repo_num} place. Then click OK button.
+    ...                 Example:
+    ...                 | Edit Repository Management |
+    ...                 | Create Repository | 1 | cirrus-hub | https://cgit-pro.houston.hpecorp.net/gerrit/p/cirrus-hub.git | user | password |
+    [Arguments]         ${repo_num}     ${repo_name}    ${repo_url}     ${repo_user}    ${repo_pw}
+    Click               id=hp-settings-edit-create
+    Type Text           css=table#repo-edit-table > tbody > tr:nth-child(${repo_num}) > td:nth-child(1) > input[name="cirrus-repo-name"]  ${repo_name}
+    Type Text           css=table#repo-edit-table > tbody > tr:nth-child(${repo_num}) > td:nth-child(2) > input  ${repo_url}
+    Type Text           css=table#repo-edit-table > tbody > tr:nth-child(${repo_num}) > td:nth-child(3) > input  ${repo_user}
+    Type Text           css=table#repo-edit-table > tbody > tr:nth-child(${repo_num}) > td:nth-child(4) > input  ${repo_pw}
+    Click               id=hp-settings-edit-ok
+
+Verify Repository "${repo_name}" Created Successfully With URL "${repo_url}" And User "${repo_user}" in "${repo_num}" Row
+    [Documentation]     {External}
+    ...                 Verify repository name, URL, user, and password show up in Repository management section of the Settings page.
+    ...                 Example:
+    ...                 | Edit Repository Management |
+    ...                 | Create Repository | 1 | cirrus-hub | https://cgit-pro.houston.hpecorp.net/gerrit/p/cirrus-hub.git | user | password |
+    ...                 | Verify Repository "cirrus-hub" Created Successfully With URL "https://cgit-pro.houston.hpecorp.net/gerrit/p/cirrus-hub.git" And User "csi-cirrus-build" in "1" Row |
+    ${index}=      Evaluate    ${repo_num}+${1}
+    Table Cell Should Contain      css=table#repo-table     ${index}       1   ${repo_name}
+    Table Cell Should Contain      css=table#repo-table     ${index}       2   ${repo_url}
+    Table Cell Should Contain      css=table#repo-table     ${index}       3   ${repo_user}
+
+Sync Repository
+    [Documentation]     {External}
+    ...                 Sync repository with ${repo_name} and wait for 5 minutes for syncing. Then click OK button.
+    ...                 Example:
+    ...                 | Edit Repository Management |
+    ...                 | Sync Repository | cirrus-hub |
+    [Arguments]         ${repo_name}
+    Page Should Contain Element     xpath=//input[@value="${repo_name}"]
+    Click               xpath=//input[@value="${repo_name}"]/../following-sibling::td[5]/button[@class="hp-primary"]
+    Wait Until Fetch Completes  300
+    Click               id=hp-settings-edit-ok
+
+Verify Shared Snippets Show Up
+    [Documentation]     {External}
+    ...                 Verify if snippets ${snippets} from the shared repository ${repo_name} are all show and able to be added in Cirrus Test Plan page.
+    ...                 Example:
+    ...                 | Verify Shared Snippets Show Up | ${snippets} |
+    [Arguments]         ${repo_name}    ${snippets}
+    Go To Edit Test Plan Page
+    # reload page to let sync repository show up
+    Reload Page
+    Open Directory      Shared Repository
+    OPen Directory      ${repo_name}
+    Open Directory      jcf
+    ${order}=    Set Variable    ${1}
+    :FOR    ${snippet}  IN  @{snippets}
+    \   Page Should Contain     ${snippet}
+    \   Add Snippet     ${snippet}
+    \   Verify Snippet ${snippet} Added In Test Layout Order ${order}
+    \   ${order}=   Evaluate    ${order}+${1}
+ 
+Verify Shared Hardware Templates Show Up
+    [Documentation]     {External}
+    ...                 Verify if hw templates ${hw_templates} from the shared repository ${repo_name} are all show and able to be used in Cirrus hwdb.
+    ...                 Example:
+    ...                 | Verify Shared Hardware Templates Show Up | ${hw_template} |
+    [Arguments]         ${repo_name}    ${hw_templates}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Go To Hardware Management Page
+    Input HW Name Type Desc     ${hw_templates}
+    Type Text           css=input#tour-server-add-${hw_templates['type']}-ilo_ip       ${hw_templates['ilo_ip']}
+    Type Text           css=input#tour-server-add-${hw_templates['type']}-ilo_user       ${hw_templates['ilo_user']}
+    Type Text           css=input#tour-server-add-${hw_templates['type']}-ilo_password       ${hw_templates['ilo_password']}
+    Type Text           css=input#tour-server-add-${hw_templates['type']}-sys_ip       ${hw_templates['sys_ip']}
+    Add HW Should Succeed
+
+Delete Repository
+    [Documentation]     {External}
+    ...                 Delete repository with ${repo_name} by clicking 'x' button, then ckick Yes, delete button, and then click OK button.
+    ...                 Example:
+    ...                 | Edit Repository Management |
+    ...                 | Delete Repository | cirrus-hub |
+    [Arguments]         ${repo_name}
+    Click               id=hp-settings-edit-create
+    Page Should Contain Element     xpath=//input[@value="${repo_name}"]
+    Click   xpath=//input[@value="${repo_name}"]/../following-sibling::td[5]/div[@class="hp-delete"]
+    Page Should Contain     Continue with delete?
+    Click   css=button.hp-ok.hp-primary
+    Page Should Not Contain Element     xpath=//input[@value="${repo_name}"]
+    Click               id=hp-settings-edit-ok
+
+Verify Repository Deleted Successfully
+    [Documentation]     {External}
+    ...                 Verify repository with ${repo_name} is deleted from Settings page.
+    ...                 Example:
+    ...                 | Verify Repository Deleted Successfully | cirrus-hub |
+    [Arguments]         ${repo_name}
+    Page Should Not Contain Element     xpath=//table[@id="repo-table"]//td[text()="${repo_name}"]
+
+Discover Synergy Server
+    [Documentation]     {External}
+    ...                 Discovery the children of the tbird_oneview hw ${hw_name} by clicking Discovery button.
+    ...                 Example:
+    ...                 | Discover Synergy Server | mysynergy |
+    [Arguments]         ${hw_name}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Select HW           ${hw_name}
+    Click               ${ACTIONS_BUTTON_IN_HARDWARE_MANAGEMENT_PAGE}
+    Click               ${DISCOVERY_IN_HARDWARE_MANAGEMENT_PAGE}
+    Wait Until Page Contains    The discovery action is complete successfully.   timeout=180
+    Run Keyword And Ignore Error    Click               ${CLOSE_IN_ADD_AND_DELETE_COMPLETE_WINDOW}
+
+Add Hardware Group With Data
+    [Documentation]     {External}
+    ...                 Add Hardware Group with ${hw} containing hw name, description, and members.
+    ...                 Example:
+    ...                 | Add Hardware Group With Data | ${hw} |
+    [Arguments]         ${hw}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Click               ${ADD_HARDWARE_GROUP_IN_HARDWARE_MANAGEMENT_PAGE}
+    Type Text           ${FILLIN_HW_NAME_IN_ADD_HARDWARE_GROUP_WINDOW}      ${hw['name']}
+    Type Text           ${FILLIN_HW_DESC_IN_ADD_HARDWARE_GROUP_WINDOW}      ${hw['desc']}
+    Add Members To Hardware Group   ${hw['group_member']}
+    Add HW Group Should Succeed     ${hw['name']}
+
+Add Members To Hardware Group
+    [Documentation]     {Internal}
+    ...                 Add members ${members} which is a member name list to Hardware Group when user is editing the hardware group.
+    ...                 Example:
+    ...                 Say ${member}= ["test1","test2"],
+    ...                 | Click Edit Hardware Action | ${hw_name} |
+    ...                 | Add Members To Hardware Group | ${members} |
+    [Arguments]         ${members}
+    :FOR    ${member}  IN  @{members}
+    \   Click               xpath=//li[text()="${member}"]/input
+    \   Click               css=p.AddOne
+   
+Clear Members Of Hardware Group 
+    [Documentation]     {Internal}
+    ...                 Remove members ${member} from Hardware Group when user is edit the hardware group.
+    ...                 Example:
+    ...                 | Click Edit Hardware Action | ${hw_name} |
+    ...                 | Clear Members Of Hardware Group |
+    Click               css=p.RemoveAll
+
+Edit Hardware Group Member
+    [Documentation]     {External}
+    ...                 Edit members of Hardware Group ${hw} with new hw members ${member}.
+    ...                 Example:
+    ...                 | Edit Hardware Group Member | ${hw} | ${member} |
+    [Arguments]         ${hw}   ${member}
+    Import Resource     ${CURDIR}/objects/cirrus_hardware_management.txt
+    Click Edit Hardware Action  ${hw['name']}
+    Clear Members Of Hardware Group
+    Add Members To Hardware Group   ${member}
+    Click               ${OK_IN_EDIT_HARDWARE_WINDOW}
+
+Verify ${hw} Member C${row} With Data ${member}
+    [Documentation]     {External}
+    ...                 Verify the data of hw member in the hardware group.
+    ...                 Example:
+    ...                 | Verify ${hw} Member C1 With Data ${member} |
+    Select HW           ${hw['name']}
+    Click               id=tour-show-hierarchy
+    ${index}=      Evaluate    ${row}+${1}
+    ## important note: Table related keywords from Selenium2Library are only supporting css/xpath, not accept id selector.
+    ${id}=  Get Table Cell  css=table#select-children-table    ${index}   1
+    Should Be Equal As Strings      ${id}       ${member['id']}
+    ${name}=    Get Table Cell  css=table#select-children-table    ${index}   2   
+    Should Be Equal As Strings      ${name}     ${member['name']}
+    ${type}=    Get Table Cell  css=table#select-children-table    ${index}   3   
+    Should Be Equal As Strings      ${type}     ${member['type']}

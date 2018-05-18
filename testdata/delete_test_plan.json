@@ -1,0 +1,97 @@
+{
+    "info": {
+        "sut_required": true, 
+        "login_name": "administrator"
+    }, 
+    "is_global": {
+        "seconds": "private", 
+        "timeout": "private", 
+        "sleep_on": "private"
+    }, 
+    "suts": {
+        "sut": {
+            "name": "tp_autotest", 
+            "inventory_override": "false", 
+            "reserved_by": "", 
+            "pause_inventory": "false", 
+            "reservations": "No", 
+            "owner": "administrator", 
+            "type": "generic", 
+            "desc": "Hello World",
+            "id": "1"
+        }, 
+        "sut2": {
+            "sys_password": "Compaq123", 
+            "owner": "administrator", 
+            "nic_id": "1", 
+            "boot_mode": "UEFI", 
+            "sys_ip": "10.30.1.37", 
+            "inventory_type": "Global", 
+            "reservations": "No", 
+            "type": "ilo", 
+            "status": "", 
+            "mac_add": "", 
+            "description": "iLO SUT - 9", 
+            "inventory_interval": "0", 
+            "reserved_by": "", 
+            "pause_inventory": "false", 
+            "ilo_user": "Administrator", 
+            "desc": "", 
+            "name": "tp_autoilo", 
+            "ilo_ip": "10.30.1.54", 
+            "inventory_override": "false", 
+            "sys_username": "root", 
+            "inventory_limit": "No Inventory", 
+            "ilo_password": "Compaq123",
+            "id": "2"
+        }
+    }, 
+    "include_options": {
+        "Altair OS Install_6491240227": {
+            "next_pass": "_next", 
+            "next_fail": "_next"
+        }, 
+        "sleeptest_910303248": {
+            "next_pass": "_next", 
+            "next_fail": "_next"
+        }
+    }, 
+    "optionTextMap": {
+        "altair_auto_server": {
+            "514": "altair_235"
+        }
+    }, 
+    "ckey": {}, 
+    "include": [
+        {
+            "status": "Input Required", 
+            "_serial": "Altair OS Install_6491240227", 
+            "name": "Altair OS Install", 
+            "id": "/ci/webapps/cirrus/jcf/Provisioning/altair_os_install_hwdb.json"
+        }, 
+        {
+            "status": "Ready to Submit", 
+            "_serial": "sleeptest_910303248", 
+            "name": "sleeptest", 
+            "id": "/ci/webapps/cirrus/jcf/Utilities/Samples/sleeptest.json"
+        }
+    ], 
+    "local": {
+        "Altair OS Install_6491240227": {
+            "os_build_plan": null, 
+            "sub_netmask": "", 
+            "deployment_ip": "", 
+            "deployment_gateway": "", 
+            "sut_name": "", 
+            "altair_auto_server": [
+                "514"
+            ]
+        }, 
+        "sleeptest_910303248": {
+            "seconds": "10", 
+            "timeout": "60s", 
+            "sleep_on": "cirrus"
+        }
+    }, 
+    "id": "/ci/data/cirrus/testplans/495631893584adfdcdb2d1f52c03c52f.json"
+}

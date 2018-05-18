@@ -1,0 +1,5 @@
+# for Robot Framework generating files
+debug.log
+log.html
+output.xml
+report.html

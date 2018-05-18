@@ -1,0 +1,94 @@
+# There is a Cirrus automation test introduction in wiki page, in which
+# includes test goal, test case development environment setup, test scipt
+# template introduction, test execution, and Robotframework useful links.
+# https://rndwiki.corp.hpecorp.net/confluence/display/Cirrus/Cirrus+robotframework-selenium+automation+test+script+template
+# 
+# Before starting to write a test, please keep the following concepts in mind:
+# - Modulize your tests.
+# - Each test should be completely independent and self-sufficient.
+# - Running fast and failing fast. Don't let your test execution time too long.
+# - Remove not only duplicate code and test implementations but also duplicate test goals.
+# - Hide test data from tests. Avoid hardcoding test data in your test scripts.
+# - Make test cases readable for human.
+# - Avoid using Sleep to wait for elements.
+
+# Setting table below will apply test case related settings to the whole test
+# suite. The "Resource" keyword is to import keywords in the resource file.
+# The "Documentation" keyword will make the documentation visible in
+# robotframework generated test report files. Robotframework provides test
+# suite level and test case level setup and teardown functionality. In short,
+# "Test Setup" is something that is executed before a test case, and "Test Teardown" is
+# something that is executed after a test case. "Suite Setup" is something
+# that is executed before a whole test suite, and "Suite Teardown" is
+# something that is executed after a whole test suite.
+#
+# env_setup.txt resource file includes keywords that we use in suite/test setup/teardown of this template.
+# If you are using Cent OS 6 with firefox and chrome browser as your test
+# development environment, "Open Browser And Load Cirrus Page" will handle the
+# development environment setup for you.
+#
+# fixture_and_faker.txt resource file includes keywords that import json file
+# into test case variable. If you have a test data written by json format, you
+# can include this resource file to leverage keyword "Get Data From JSON".
+#
+# selenium_wrapper.txt resource file includes Cirrus related keywords which
+# will help you to complete your test case. If you want to interact with Cirrus, 
+# this resource file must be included.
+#
+# Pybot cmd:
+#   pybot -v VM:your-VM-name -v BROWSER:chrome TEMPLATE.txt
+#   pybot -v VM:your-VM-name -i template TEMPLATE/
+
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+
+# Variables table allows creating variable assignment.
+*** Variables ***
+${desc}     Go go power ranger!!
+
+# Test cases are constructed in test case table from the available keywords.
+# Tags keyword is to assign tags to a test case. You can execute test cases by
+# either test case names or tags. One test case can have multiple tags at the
+# same time.
+*** Test Cases ***
+Login User Administrator                                # Test case name
+    [Tags]      template     login-template             # Tags applied to this case are "template" and "login-template"
+    [Setup]                                             # If you want to overwrite default test setup, use Setup keyword with new action or nothing
+    Login Cirrus    administrator     Compaq123         # Use keyword "Login Cirrus" with parameters "administrator" and "Compaq123" to login appliance
+    Verify Login User Name Should Be    administrator   # Use keyword "Verify Login User Name Should Be" to verify if login user is administrator
+    Logout Cirrus                                       # Keyword "Logout Cirrus" to logout from appliance
+    [Teardown]                                          # Overwrite default test teardown and will do nothing when test teardown
+
+Add Hardware
+    [Tags]      template
+    Go To Hardware Management Page
+    ${hw}=    Get Data From JSON  ${CURDIR}/../testdata/TEMPLATE_hw.json    # Hide test data by getting test data from json file
+    Add Generic Hardware With Data ${hw[0]}
+    Verify Added HW Name Type Desc Should Be    ${hw[0]}
+    Add iLo Hardware With Data ${hw[1]}
+    Verify Added HW Name Type Desc Should Be    ${hw[1]}
+
+Edit Hardware
+    [Tags]      template
+    Go To Hardware Management Page
+    ${hw}=    Get Data From JSON  ${CURDIR}/../testdata/TEMPLATE_hw.json
+    Edit Hardware ${hw[0]} Description To "${desc}"
+    Verify Added HW Name Type Desc Should Be    ${hw[2]}
+
+Clone Hardware
+    [Tags]      template
+    Go To Hardware Management Page
+    ${hw}=    Get Data From JSON  ${CURDIR}/../testdata/TEMPLATE_hw.json
+    Clone Hardware ${hw[1]} To ${hw[3]}
+    Verify Added HW Name Type Desc Should Be    ${hw[3]}
+
+Delete Hardware
+    [Tags]      template
+    Go To Hardware Management Page
+    ${hw}=    Get Data From JSON  ${CURDIR}/../testdata/TEMPLATE_hw.json
+    Delete Hardware ${hw[0]}
+    Verify HW ${hw[0]} Not Exist
+    Delete Hardware ${hw[1]}
+    Verify HW ${hw[1]} Not Exist

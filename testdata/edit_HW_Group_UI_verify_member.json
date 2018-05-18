@@ -1,0 +1,17 @@
+[
+    {
+        "name":"sles12",
+        "id":"9",
+        "type":"altair"
+    },
+    {
+        "name":"win2012",
+        "id":"10",
+        "type":"altair"
+    },
+    {
+        "name":"esxi6",
+        "id":"11",
+        "type":"altair"
+    }
+]

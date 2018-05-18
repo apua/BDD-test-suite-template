@@ -1,0 +1,47 @@
+{
+  "info": {
+      "desc": "Altair Provision",
+      "login_name": "administrator",
+      "name" : "Altair Provision"
+  },
+  "suts": {
+    "altair_server": {
+        "name":"altair",
+        "shared": true
+    },
+    "sut": {
+        "name":"ilo123"
+    }
+  },
+  "stages": {
+      "Altair Provision": {
+          "target": "${cirrus}",
+          "stage_sut": "sut",
+          "next_pass": "Update HWDB",
+          "next_fail": "_quit",
+          "action": {
+              "cirrus_module": "Altair",
+              "Altair_ip": "${suts.altair_server.sys_ip}",
+              "Altair_username": "${suts.altair_server.sys_username}",
+              "Altair_pw": "${suts.altair_server.sys_password}",
+              "ilo_ip": "${suts.sut.ilo_ip}",
+              "ilo_username": "${suts.sut.ilo_user}",
+              "ilo_pw": "${suts.sut.ilo_password}",
+              "os_build_plan": ["ProLiant OS - RHEL 7.0 x64 Scripted Install"]
+              
+           }
+      },
+      "Update HWDB": {
+          "target": "${cirrus}",
+          "stage_sut": "sut",
+          "next_pass": "_quit",
+          "next_fail": "_quit",
+          "action": {
+              "cirrus_module": "hwdb",
+              "source": "${dynamic.${stages.Update HWDB.stage_sut}.hwdb}",
+              "cirrus_mode": "run"
+          }
+      }
+   }
+}
+

@@ -1,0 +1,161 @@
+*** Settings ***
+Resource        ${CURDIR}/../resources/init_settings.txt
+Library         ${CURDIR}/../resources/VerifyResults.py
+
+Test Setup      Login To Appliance  ${VM_name}
+
+Force Tags        rest
+
+
+*** Keywords ***
+Login To Appliance
+    [Arguments]     ${VM_name}
+    Import Library  ${CURDIR}/../resources/EsxiLib.py    ip=${VSPHERE_IP}    username=${VSPHERE_USERNAME}   password=${VSPHERE_PASSWORD}    WITH NAME   EsxiLib
+    ${ip}=  Get Variable Value  ${CIRRUS_VM_IP}
+    ${ip}=  Run Keyword If  '${ip}' == 'None'  EsxiLib.Get IP  vmname=${VM_name}  ELSE  Get Variable Value  ${ip}
+    Import Library  ${CURDIR}/../resources/CirrusRESTLib.py    ip=${ip}    WITH NAME   Cirrus
+    ${resp}=    Login Cirrus    ${CIRRUS_ADMIN_USERNAME}    ${CIRRUS_ADMIN_PASSWORD}
+    Log to Console      ${ip}
+    Should Be Equal As Strings    ${resp}    200
+
+*** Test Cases ***
+Notify
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/testplan_notify.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+
+Sys Command On SUT
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/sys_command.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+    Connect Sut Via SSH      10.30.250.19  root    Compaq123
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_sys_cmd/action/stdout.log
+    Should Be Equal As Strings    ${result}    File exist
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_sys_cmd/action/stderr.log
+    Should Be Equal As Strings    ${result}    File exist
+
+Sys Command On Remote System
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/sys_command_remote.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+   # System command on remote bug: no file generated on remote sut. Check
+   # Cirrus report folder instead
+    Log      Cirrus IP: ${CIRRUS_IP}       console=yes
+    Connect Sut Via SSH     ${CIRRUS_IP}  root    hpvse1
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_sys_cmd/action/stdout.log
+    Should Be Equal As Strings    ${result}    File exist
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_sys_cmd/action/stderr.log
+    Should Be Equal As Strings    ${result}    File exist
+
+Reboot iLo SUT and VM SUT
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/reboot.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+    ${result}=  Verify SUT Reboot   10.30.250.19  root    Compaq123
+    Should Be Equal As Strings    ${result}    0
+    ${result}=  Verify SUT Reboot   10.30.250.20  Administrator    Compaq123
+    Should Be Equal As Strings    ${result}    0
+    ${result}=  Verify SUT Reboot   10.30.250.27  root    Com!paq123
+    Should Be Equal As Strings    ${result}    0
+
+Copyfiles On Windows/Linux/Esxi SUTs
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/testplan_copyfiles.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+    Connect Sut Via SSH     10.30.250.19  root    Compaq123
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/copyfiles_d/${resp[1]}/hello_and_goodbye.json
+    Should Be Equal As Strings    ${result}    File exist
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/copyfiles_d/${resp[1]}/bootmgr.efi
+    Should Be Equal As Strings    ${result}    File exist
+    Connect Sut Via SSH     10.30.250.20  Administrator    Compaq123
+    ${result}=    Verify Cirrus Logs On Windows SUT   /ci/data/cirrus/copyfiles_d/${resp[1]}/hello_and_goodbye.json
+    Should Be Equal As Strings    ${result}    File exist
+    ${result}=    Verify Cirrus Logs On Windows SUT   /ci/data/cirrus/copyfiles_d/${resp[1]}/notify.json
+    Should Be Equal As Strings    ${result}    File exist
+    ${result}=    Verify Cirrus Logs On Windows SUT   /ci/data/cirrus/copyfiles_d/${resp[1]}/sjcf_hello_and_goodbye.sjcf
+    Should Be Equal As Strings    ${result}    File exist
+    Connect Sut Via SSH     10.30.250.27  root    Com!paq123
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/copyfiles_d/${resp[1]}/bootmgr.efi
+    Should Be Equal As Strings    ${result}    File exist
+
+Run RG Test Cases on Windows/Linux RoboGalaxy Server
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/robo.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+    #Connect Sut Via SSH     10.30.250.22  root    Compaq123
+    #${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_RG_hello/summary_report.html
+    #Should Be Equal As Strings    ${result}    File exist
+    #Connect Sut Via SSH     10.30.250.23  Administrator    Compaq123
+    #${result}=    Verify Cirrus Logs On Windows SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_RG_sample/summary_report.html
+    #Should Be Equal As Strings    ${result}    File exist
+
+Run RG Folder Test Cases on Windows/Linux RoboGalaxy Server
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/robo_for_forder_tree.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+    #Connect Sut Via SSH     10.30.250.22  root    Compaq123
+    #${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_RG_hello/summary_report.html
+    #Should Be Equal As Strings    ${result}    File exist
+    #Connect Sut Via SSH     10.30.250.23  Administrator    Compaq123
+    #${result}=    Verify Cirrus Logs On Windows SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_RG_sample/summary_report.html
+    #Should Be Equal As Strings    ${result}    File exist
+
+Run Agent Switch Test Case Windows Helper and Linux SUT
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/agent_switch_helper_and_linux_sut.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    Log    ${resp[1]}
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+
+Run Agent Switch Test Case between Windows and Linux SUTs
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/agent_switch_winsut_linsut.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+    Connect Sut Via SSH     10.30.250.19  root    Compaq123
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/copyfiles_d/${resp[1]}/hello_and_goodbye.json
+    Should Be Equal As Strings    ${result}    File exist
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/copyfiles_d/${resp[1]}/bootmgr.efi
+    Should Be Equal As Strings    ${result}    File exist
+
+CTRL on Linux SUT
+    [Tags]  fast
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/ctrl.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+    Connect Sut Via SSH     10.30.250.19  root    Compaq123
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_PI_and_Euler_number_calculation/ctrl_report.html
+    Should Be Equal As Strings    ${result}    File exist
+    ${result}=    Verify Cirrus Logs On Linux SUT   /ci/data/cirrus/jobs/${resp[1]}/stage/Run_PI_and_Euler_number_calculation/results.json
+    Should Be Equal As Strings    ${result}    File exist
+
+L2ADD Provisions on one single SUT
+    [Tags]  fast    l2add
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/l2add.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass
+
+Altair Provision OS
+    [Tags]  fast    disabled
+    ${resp}=    Submit Test Plan   ${CURDIR}/../testdata/altair.json
+    Should Be Equal As Strings    ${resp[0]}    200
+    ${status}=    Check Job Status    ${resp[1]}
+    Should Be Equal As Strings    ${status}    pass

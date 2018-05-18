@@ -1,0 +1,75 @@
+{
+    "info": {
+        "name": "Reboot: agent_online False",
+        "desc": "Reboot server which can be reached by Cirrus"
+    },
+    "configure": {
+        "agent_online": false
+    },
+    "ckey_template": {
+        "rebootOSType": {
+            "order": 1,
+            "name": "rebootOSType",
+            "desc": "Select OS type of the rebooted server",
+            "hidden": false,
+            "data_type": "list",
+            "required": true,
+            "query_type": "rest",
+            "dependencies": [
+            ],
+            "rest": "/rest/cirrus/module/reboot/ostype",
+            "default": ""
+        },
+        "rebootmode": {
+            "order": 2,
+            "name": "rebootmode",
+            "desc": "Select mode of reboot either ilo or os",
+            "hidden": false,
+            "data_type": "list",
+            "required": true,
+            "query_type": "rest",
+            "dependencies": [
+            ],
+            "rest": "/rest/cirrus/module/reboot/mode",
+            "default": ""
+        },
+        "iloCommand": {
+            "order": 3,
+            "name": "iloCommand",
+            "desc": "Select the ilo command to be sent to the rebooted machine for rebooted machine",
+            "hidden": false,
+            "data_type": "list",
+            "required": true,
+            "query_type": "rest",
+            "dependencies": [
+            ],
+            "rest": "/rest/cirrus/module/reboot/ilocommand",
+            "default": ""
+        }
+    },
+    "suts": {
+    },
+    "stages": [
+        {
+            "Testcase: Reboot": {
+                "target": "${cirrus}",
+                "action": {
+                    "cirrus_module": "reboot",
+                    "rebootOSType": "${ckey.rebootOSType}",
+                    "rebootmode": "${ckey.rebootmode}",
+                    "iloCommand": "${ckey.iloCommand}",
+                    "iloip": "${suts.sut.ilo_ip}",
+                    "ilousername": "${suts.sut.ilo_user}",
+                    "ilopassword": "${suts.sut.ilo_password}",
+                    "hostIP": "${suts.sut.sys_ip}",
+                    "username": "${suts.sut.sys_username}",
+                    "password": "${suts.sut.sys_password}",
+                    "repeat": 1,
+                    "timeunitseconds": 60,
+                    "shutdownwait": 2,
+                    "systemupwait": 10
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,56 @@
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+
+*** Test Cases ***
+Sync Job Pass Icons In Job Status Page: Sleeptest
+    [Tags]      toft1
+    Go To Edit Test Plan Page
+    Open Directory  Utilities
+    Open Directory  Samples
+    Add Snippet     sleeptest
+    Click Order 1 Snippet To Edit Ckeys
+    Fillin Ckey seconds With Value 60
+    Click Save In Ckey Window
+    Verify Snippet In Order 1 Status Should Be "Ready to Submit"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[0]['name']}
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[0]}
+    ${job id}=    Submit Job From Edit Test Plan Page
+    Check Status Icons After Job ${job id} Runs For 90 seconds And pass
+
+Sync Job Pass Icons In Job Status Page: Copyfiles And Sys-command 
+    [Tags]      toft1
+    Upload QA Test Snippets
+    Go To Edit Test Plan Page
+    Open Directory  QA
+    Add Snippet     copyfiles
+    Verify Snippet copyfiles Added In Test Layout Order 1
+    Verify Snippet In Order 1 Status Should Be "None"
+    Open Directory  Utilities
+    Add Snippet     Sys-command on remote system
+    Fillin Ckey target_ip With Value ${hw[9]['sys_ip']}
+    Fillin Ckey command With Value ls /tmp
+    Fillin Ckey sys_username With Value ${hw[9]['sys_username']}
+    Fillin Input Type Ckey sys_password With Value ${hw[9]['sys_password']}
+    Click Save In Ckey Window
+    Verify Snippet Sys-command on remote system Added In Test Layout Order 2
+    Verify Snippet In Order 2 Status Should Be "Ready to Submit"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[10]['name']}
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[10]}
+    ${job id}=    Submit Job From Edit Test Plan Page
+    Check Status Icons After Job ${job id} Runs For 120 seconds And pass
+
+*** Keywords ***
+Check Status Icons After Job ${job id} Runs For ${timeout} seconds And ${status}
+    Go To Job Status Page
+    @{words}=    Split String    ${job id}     separator=_
+    Wait Until Page Contains Element    xpath=//tr[contains(@class, "${job id}")]
+    Select Job      ${job id}
+    Sleep       ${timeout}
+    Wait Until Page Contains Element    xpath=//tr[contains(@class, "${job id}")]/td/div[contains(@class, "hp-status-${status}")]
+    Wait Until Page Contains Element     css=header.hp-details-header > div.hp-status-${status}
+    Wait Until Element Contains     css=td#tour-job-current-stage     ${status}
+    Wait Until Page Contains Element        css=div.bundle-job-status-${status}

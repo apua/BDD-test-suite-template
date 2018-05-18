@@ -1,0 +1,143 @@
+*** Settings ***
+Resource          ${CURDIR}/../init_settings.txt
+Library           Selenium2Library
+Library           Collections
+Library           String
+Library           Process
+Library           OperatingSystem
+
+*** Keywords ***
+Open Browser And Load Cirrus Page
+    [Documentation]     {External}\n
+    ...                 Kick off Xvfb and x11vnc first. Open a new browser instance according to ${BROWSER} to given ${VM} and setup global variables ${CIRRUS_IP} and ${CIRRUS_URL}.\n
+    ...                 ${BROWSER} accepts chrome, and ie.\n
+    ...                 Prerequisite: Refer to https://rndwiki.corp.hpecorp.net/confluence/display/Cirrus/Install+Firefox,+Chrome,+and+Chromedriver+on+CentOS+6
+    ...                 Example:
+    ...                 | Open Browser And Load Cirrus Page | DeployTest |
+    ...                 | Open Browser And Load Cirrus Page | DeployTest | chrome |
+    [Arguments]         ${VM}      ${BROWSER}=chrome
+    Get Cirrus VM IP And Set URL    ${VM}
+    Start Process       bash      ${CURDIR}/xvfb.sh 
+    Sleep       1
+    Open Browser    ${CIRRUS_URL}    ${BROWSER}
+    Set Selenium Speed    ${SELENIUM_SPEED}
+    Maximize Browser Window
+    ${output}=  Run     rpm -qa |grep chrome
+    Log     Browser version:${output}   console=yes
+    Log     \nOpen ${CIRRUS_URL} in ${BROWSER} browser   console=yes
+
+Get Cirrus VM IP And Set URL
+    [Documentation]     {External}
+    ...                 Get Cirrus IP address and set global variables ${CIRRUS_IP} and ${CIRRUS_URL} from VM name in vsphere server.
+    ...                 Example:
+    ...                 | Get Cirrus VM IP And Set URL | CirrusVM |
+    [Arguments]         ${VM}
+    Import Library  ${CURDIR}/../EsxiLib.py    ip=${VSPHERE_IP}    username=${VSPHERE_USERNAME}   password=${VSPHERE_PASSWORD}    WITH NAME   EsxiLib
+    ${ip}=  Get Variable Value  ${CIRRUS_VM_IP}
+    ${ip}=  Run Keyword If  '${ip}' == 'None'  EsxiLib.Get IP  vmname=${VM_name}  ELSE  Get Variable Value  ${ip}
+    Set Global Variable    ${CIRRUS_IP}    ${ip}
+    Set Global Variable    ${CIRRUS_URL}    https://${CIRRUS_IP}
+
+Before Test Login Appliance
+    [Documentation]     {External}
+    ...                 Navigate to cirrus URL and login with provided account and credential. This keyword is used in test setup. Default login user and password are administrator and Compaq123.
+    ...                 Example:
+    ...                 | Test Setup | Before Test Login Appliance |
+    ...                 | Test Setup | Before Test Login Appliance | tester | Compaq123 |
+    [Arguments]         ${user}=administrator         ${password}=Compaq123
+    Import Resource     ${CURDIR}/../objects/cirrus_login_page.txt
+    Go To           ${CIRRUS_URL}
+    Wait Until Page Contains Element    ${LOGIN_USER_IN_LOGIN_PAGE}
+    Login Cirrus    ${user}     ${password}
+
+After Test Logout Appliance
+    [Documentation]     {External}
+    ...                 Navigate to cirrus home page if the test was failed, and log out cirrus. This keyword is used in test teardown.
+    ...                 Example:
+    ...                 | Test Teardown | After Test Logout Appliance |
+    Run Keyword And Ignore Error    Run Keywords
+    ...     Dismiss Alert
+    ...     Dismiss Alert
+    Run Keyword If Test Failed      Go To           ${CIRRUS_URL}
+    Logout Cirrus
+
+Upload QA Test Snippets
+    [Documentation]     {Internal}
+    ...                 Upload QA directory with QA test snippets.
+    ...                 Example:
+    ...                 | Upload QA Test Snippets |
+    Import Library      SSHLibrary
+    Open Connection     ${CIRRUS_IP}
+    Login    root    hpvse1
+    Put File   ${CURDIR}/../../qa_jcf/*     /ci/webapps/cirrus/jcf/QA/
+
+Import All Test SUTs To Cirrus
+    [Documentation]     {External}
+    ...                 Suite setup to import all test SUTs data to Cirrus HWDB via REST call.
+    ...                 Example:
+    ...                 | Suite Setup | Import All Test SUTs To Cirrus | test_sut1.json |
+    [Arguments]         ${VM}     ${sut_data}=test_sut1.json     ${user}=administrator   ${password}=Compaq123
+    Get Cirrus VM IP And Set URL    ${VM}
+    Import Resource     ${CURDIR}/../fixtures/fixture_and_faker.txt
+    ${hw}=      Get Data From JSON      ${CURDIR}/../../testdata/${sut_data}
+    Set Global Variable  ${hw}
+    Set Global Variable  @{hw_id_list}   @{EMPTY}
+    ## Use Login Appliance in Cirrus_MAT_keywords.txt
+    Import Resource     ${CURDIR}/../Cirrus_MAT_keywords.txt
+    ${token}=      Cirrus_MAT_keywords.Login Appliance   ${CIRRUS_IP}    ${user}    ${password}
+    Create Session Json     cirrus    ${CIRRUS_URL}
+    ${headers}=    Create Dictionary    Content-Type=application/json    auth=${token}
+    :FOR    ${sut}  IN  @{hw}
+    \   ${data}=    Create List     ${sut}
+    \   ${resp}=    Post Json    cirrus    /rest/cirrus/servers    data=${data}    headers=${headers}
+    \   Should Be Equal As Strings    ${resp.status_code}    200
+    \   ${hw_id}=    Set Variable      ${resp.json()['hardwareData'][0]['id']}
+    \   Should Be True    ${hw_id} > 0
+    \   Log To Console    \nAdded ${sut['type']} HW ${sut['name']}, ID is ${hw_id}
+    \   Append To List  ${hw_id_list}  ${hw_id}
+
+Clear All Test SUTs From Cirrus
+    [Documentation]     {External}
+    ...                 Suite teardown to clear all test SUTs data from Cirrus HWDB via REST call. Will use sutie variable ${hw_id_list} as input. Must be used as pair with Import All Test SUTs To Cirrus.
+    ...                 Example:
+    ...                 | Suite Teardown | Clear All Test SUTs From Cirrus |
+    [Arguments]         ${user}=administrator   ${password}=Compaq123
+    ## Use Login Appliance in Cirrus_MAT_keywords.txt
+    Import Resource     ${CURDIR}/../Cirrus_MAT_keywords.txt
+    ${token}=      Login Appliance   ${CIRRUS_IP}    ${user}    ${password}
+    Import Library      RequestsLibrary
+    Create Session     cirrus    ${CIRRUS_URL}
+    ${headers}=    Create Dictionary    Content-Type=application/json    auth=${token}
+    :FOR    ${id}  IN  @{hw_id_list}
+    \   ${resp}=    Delete    cirrus    /rest/cirrus/servers/${id}     headers=${headers}    
+    \   Should Be Equal As Strings    ${resp.status_code}    204
+    \   Log To Console    SUT id ${id} is deleted.
+
+Import Test SUTs To Cirrus And Open Browser For Test
+    [Documentation]     {External}
+    ...                 Import SUTs to Cirrus via REST and open browser
+    ...                 Example:
+    ...                 | Suite Setup | Import Test SUTs To Cirrus And Open Browser For Test | CirrusVM | ${sut_data}=test_sut1.json | ${BROWSER}=chrome |
+    [Arguments]         ${VM}     ${BROWSER}=firefox    ${sut_data}=test_sut1.json     ${user}=administrator   ${password}=Compaq123
+    Import All Test SUTs To Cirrus      ${VM}       ${sut_data}     ${user}     ${password}
+    Open Browser And Load Cirrus Page    ${VM}      ${BROWSER}
+
+Clear Test SUTs From Cirrus And Close Browser
+    [Documentation]     {External}
+    ...                 Clear SUTs from Cirrus via REST and close browser. Used in teardown and should be pair with Import Test SUTs To Cirrus And Open Browser For Test.
+    ...                 Example:
+    ...                 | Suite Teardown | Clear All Test SUTs From Cirrus  And Close Browser |
+    [Arguments]         ${user}=administrator   ${password}=Compaq123
+    Clear All Test SUTs From Cirrus     ${user}     ${password}
+    Close All Browsers
+
+Teardown: Test Passed And Delete VM
+    [Documentation]     {External}
+    ...                 Teardown to delete tested VM if considering test is passed.
+    ...                 Example:
+    ...                 | Test Teardown | Teardown: Test Passed And Delete VM |
+    [Arguments]     ${VM}
+    Close All Browsers
+    #Connect To VI Server    ${VSPHERE_IP}    ${VSPHERE_USERNAME}    ${VSPHERE_PASSWORD}
+    #Power Off Vm  ${VM}
+    #Destroy Vm  ${VM}

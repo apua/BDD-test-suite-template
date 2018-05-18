@@ -1,0 +1,18 @@
+# This argument file specifiies parameters and test suit execution order.
+# Will use "chrome" browser for UI Selenium test on VM with name
+# "DeployTest-Daily".
+# Include test cases with "rat","fast","toft2","fet" tags and exclude test
+# cases with tag "renameVM".
+-v BROWSER:chrome 
+-i init
+-i rat
+-i fast
+-i upgrade-ci
+-i ui
+-e disabled
+-c rat
+-c l2add
+
+--reportbackground lightgreen:orange:red
+mat/script/tests/cirrus/Cirrus_REST_no_dependent/
+mat/script/tests/cirrus/Cirrus_UI_write_hwdb/

@@ -1,0 +1,44 @@
+# pybot cmd:
+#   pybot -v "VM name":"Deploy-1.9.4" -v "new_VMname":"cirrus-1.9.4" Cirrus_Fresh_Installed_REST_MAT.txt
+
+*** Settings ***
+Resource          ${CURDIR}/../resources/init_settings.txt
+
+
+*** Test Cases ***
+Get Cirrus Appliance IP And Wait For Appliance To Start
+    [Tags]      rat
+    Import Library  ${CURDIR}/../resources/EsxiLib.py    ip=${VSPHERE_IP}    username=${VSPHERE_USERNAME}   password=${VSPHERE_PASSWORD}    WITH NAME   EsxiLib
+    ${ip}=  Get Variable Value  ${CIRRUS_VM_IP}
+    ${ip}=  Run Keyword If  '${ip}' == 'None'  EsxiLib.Get IP  vmname=${VM_name}  ELSE  Get Variable Value  ${ip}
+    Import Library  ${CURDIR}/../resources/CirrusRESTLib.py    ip=${ip}    WITH NAME   Cirrus
+    Set Global Variable     ${CIRRUS_IP}    ${ip}
+    Log to console   ${ip}
+    Wait For Cirrus To Start    ${CIRRUS_ADMIN_USERNAME}    ${CIRRUS_DEFAULT_ADMIN_PASSWORD}
+    [Teardown]  Run Keyword If Test Failed  Fatal Error
+
+Sleep for 6 minutes to workaround service unavailable
+    [Tags]      init
+    Sleep   360
+
+Accpet EULA
+    [Tags]      init
+    ${resp}=    Save Eula
+    Should Be Equal As Strings    ${resp}    200
+    [Teardown]     Sleep   5
+
+Change Cirrus Initial Password
+    [Tags]      rat
+    ${resp}=    Change Initial Password    ${CIRRUS_DEFAULT_ADMIN_PASSWORD}    ${CIRRUS_ADMIN_PASSWORD}
+    Should Be Equal As Strings    ${resp}    200
+    [Teardown]     Sleep   5
+
+Login Appliance And Setup Network
+    [Tags]      init
+    ${resp}=    Login Cirrus    ${CIRRUS_ADMIN_USERNAME}    ${CIRRUS_ADMIN_PASSWORD}
+    Should Be Equal As Strings    ${resp}    200
+    ${resp}=    Set Init Network
+    Should Be Equal As Strings    ${resp}    202
+    ${resp}=    Wait Until Network Config Done
+    Should Be Equal As Strings    ${resp}    0
+    [Teardown]     Sleep   5

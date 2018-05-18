@@ -1,0 +1,2 @@
+*** Variables ***
+${GROUP_JOBS_TABLE_IN_JOB_STATUS}  css=table#group-jobs

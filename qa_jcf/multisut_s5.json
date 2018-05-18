@@ -1,0 +1,57 @@
+{
+    "info": {
+        "name": "Multi SUT S5"
+    },
+    "ckey": {
+        "command_lin": "ifconfig",
+        "command_win": "ipconfig",
+        "command_ilo": "ifconfig"
+    },
+    "stages":[
+        {
+            "Run_sys_cmd on Linux": {
+                "target":"${sut}",
+                "action": {
+                    "cirrus_module": "sys_command",
+                    "command": "${ckey.command_lin}",
+                    "output_mode": "overwrite",
+                    "error_file": "/errors.txt",
+                    "error_map": {
+                        "127": "not found",
+                        "1": "not recognized"
+                    }
+                }
+            }
+        },
+        {
+            "Run_sys_cmd on Windows": {
+                "target":"${sut2}",
+                "action": {
+                    "cirrus_module": "sys_command",
+                    "command": "${ckey.command_win}",
+                    "output_mode": "overwrite",
+                    "error_file": "/errors.txt",
+                    "error_map": {
+                        "127": "not found",
+                        "1": "not recognized"
+                    }
+                }
+            }
+        },
+        {
+            "Run_sys_cmd on iLo": {
+                "target":"${sut3}",
+                "action": {
+                    "cirrus_module": "sys_command",
+                    "command": "${ckey.command_ilo}",
+                    "output_mode": "overwrite",
+                    "error_file": "/errors.txt",
+                    "error_map": {
+                        "127": "not found",
+                        "1": "not recognized"
+                    }
+                }
+            }
+        }
+    ]
+}

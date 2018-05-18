@@ -1,0 +1,15 @@
+info
+    name=sjcf_hello_world
+
+ckey
+    name='"My quoted value"'
+
+hello_world ON ${sut} AS Hello
+    cirrus_module=hello_world
+    name=${ckey_name}
+
+hello_world ON ${sut} AS Goodbye
+    cirrus_module=hello_world
+    greeting=Goodbye
+    name=wyf
+

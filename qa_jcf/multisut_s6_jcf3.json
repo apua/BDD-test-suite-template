@@ -1,0 +1,21 @@
+{
+    "info": {
+        "name": "Multi SUT S6 JCF3"
+    },
+    "ckey": {
+        "stage1": "ifconfig"
+    },
+    "stages":[
+        {
+            "Run_sys_cmd on the first SUT": {
+                "target":"${sut}",
+                "action": {
+                    "cirrus_module": "sys_command",
+                    "command": "${ckey.stage1}",
+                    "output_mode": "overwrite",
+                    "error_file": "/errors.txt"
+                }
+            }
+        }
+    ]
+}

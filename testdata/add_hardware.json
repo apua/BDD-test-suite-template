@@ -1,0 +1,17 @@
+[
+    {
+        "type": "generic",
+        "desc": "Hello World",
+        "owner_type": "users"
+    },
+    {
+        "ilo_ip": "10.30.1.255",
+        "ilo_user": "administrator",
+        "ilo_password": "Compaq123",
+        "type": "ilo",
+        "desc": "iLO SUT",
+        "inventory_limit": "basic",
+        "inventory_interval": "0",
+        "owner_type": "users"
+    }
+]

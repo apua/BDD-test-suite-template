@@ -1,0 +1,91 @@
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+Library     ${CURDIR}/../resources/CirrusRESTLib.py    ip=${CIRRUS_IP}    WITH NAME   CirrusREST
+
+*** Keywords ***
+Add Hardware Via REST After Login Cirrus
+    [Arguments]     ${hw_data}
+    Before Test Login Appliance
+    CirrusREST.Add Hardware     ${hw_data}
+    Go To Hardware Management Page
+
+Login and Go To Hardware Management Page
+    Before Test Login Appliance
+    Go To Hardware Management Page
+
+*** Test Cases ***
+Add Hardware
+    [Tags]      toft1     hwm     ui
+    [Setup]     Login and Go To Hardware Management Page
+    ${hw}=    Get Data From JSON And Push Random Name Values   ${CURDIR}/../testdata/add_hardware.json
+    Add Generic Hardware With Data ${hw[0]}
+    Verify Added HW Name Type Desc Should Be    ${hw[0]}
+    Add iLo Hardware With Data ${hw[1]}
+    Verify Added HW Name Type Desc Should Be    ${hw[1]}
+    Verify ${hw[1]} Attribute ilo_ip Should Be ${hw[1]['ilo_ip']}
+    Verify ${hw[1]} Attribute ilo_user Should Be ${hw[1]['ilo_user']}
+    Verify ${hw[1]} Attribute ilo_password Should Be ********
+
+Clone Hardware
+    [Tags]      toft1     hwm     ui    disabled
+    [Setup]     Add Hardware Via REST After Login Cirrus    ${CURDIR}/../testdata/clone_hardware.json
+    ${hw}=      Get Data From JSON  ${CURDIR}/../testdata/clone_hardware_for_cmp.json
+    Clone Hardware ${hw[0]} To ${hw[1]}
+    Verify Added HW Name Type Desc Should Be    ${hw[1]}
+    Verify ${hw[1]} Attribute ilo_ip Should Be ${hw[1]['ilo_ip']}
+    Verify ${hw[1]} Attribute ilo_user Should Be ${hw[1]['ilo_user']}
+    Verify ${hw[1]} Attribute ilo_password Should Be ********
+
+Edit Hardware
+    [Tags]      toft1     hwm     ui
+    [Setup]     Add Hardware Via REST After Login Cirrus    ${CURDIR}/../testdata/edit_hardware.json
+    ${hw}=      Get Data From JSON  ${CURDIR}/../testdata/edit_hardware.json
+    Set To Dictionary   ${hw[0]}    desc=Go go power ranger!!
+    Edit Hardware ${hw[0]} Description To "Go go power ranger!!"
+    Verify Added HW Name Type Desc Should Be    ${hw[0]}
+    Edit Hardware ${hw[1]} Attribute ilo_ip To 10.30.1.45
+    Verify ${hw[1]} Attribute ilo_ip Should Be 10.30.1.45
+
+Delete Hardware
+    [Tags]      toft1     hwm     ui
+    [Setup]     Add Hardware Via REST After Login Cirrus    ${CURDIR}/../testdata/delete_hardware.json
+    ${hw}=    Get Data From JSON    ${CURDIR}/../testdata/delete_hardware.json
+    Delete Hardware ${hw[0]}
+    Verify HW ${hw[0]} Not Exist
+    Delete Hardware ${hw[1]}
+    Verify HW ${hw[1]} Not Exist
+
+Add Hardware Group
+    [Tags]      toft1     hwm     ui
+    [Setup]     Login and Go To Hardware Management Page
+    ${hw}=    Get Data From JSON And Push Random Name Values   ${CURDIR}/../testdata/add_HW_Group_UI.json
+    ${member}=      Get Data From JSON  ${CURDIR}/../testdata/add_HW_Group_UI_verify_member.json
+    Add Hardware Group With Data    ${hw[0]}
+    Verify Added HW Name Type Desc Should Be    ${hw[0]}
+    Verify ${hw[0]} Member C1 With Data ${member[0]}
+    Verify ${hw[0]} Member C2 With Data ${member[1]}
+    Verify ${hw[0]} Member C3 With Data ${member[2]}
+
+Edit Hardware Group
+    [Tags]      toft1     hwm     ui
+    [Setup]     Add Hardware Via REST After Login Cirrus    ${CURDIR}/../testdata/HW_Group_add_for_ui_test.json
+    ${hw}=      Get Data From JSON  ${CURDIR}/../testdata/HW_Group_add_for_ui_test.json
+    ${new_member}=      Get Data From JSON  ${CURDIR}/../testdata/HW_Group_new_member.json
+    ${member}=      Get Data From JSON  ${CURDIR}/../testdata/edit_HW_Group_UI_verify_member.json
+    Edit Hardware Group Member  ${hw[0]}    ${new_member}
+    Verify ${hw[0]} Member C1 With Data ${member[0]}
+    Verify ${hw[0]} Member C2 With Data ${member[1]}
+    Set To Dictionary   ${hw[0]}    desc=Go go power ranger!!
+    Edit Hardware ${hw[0]} Description To "Go go power ranger!!"
+    Verify Added HW Name Type Desc Should Be    ${hw[0]}
+
+Delete Hardware Group
+    [Tags]      toft1     hwm     ui
+    [Setup]     Add Hardware Via REST After Login Cirrus    ${CURDIR}/../testdata/delete_HW_Group_UI.json
+    ${hw}=    Get Data From JSON    ${CURDIR}/../testdata/delete_HW_Group_UI.json
+    Delete Hardware ${hw[0]}
+    Verify HW ${hw[0]} Not Exist
+    Delete Hardware ${hw[1]}
+    Verify HW ${hw[1]} Not Exist

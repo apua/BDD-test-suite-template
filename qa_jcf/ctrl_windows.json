@@ -1,0 +1,33 @@
+{
+    "info": {
+        "name": "ctrl_windows"
+    },
+
+    "stages":[
+        {
+            "Download: certificate" : {
+                "target" : "${sut}",
+                "action" : {
+                    "cirrus_module" : "copyfiles",
+                    "files" : [
+                        [
+                            "ftp://devnfs:Compaq123@10.30.1.60/Public/QA/certificate/*",
+                            "/certificate/",
+                            "recursive"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "Import: SUT certificates" : {
+                "target" : "${sut}",
+                "action" : {
+                    "cirrus_module" : "ctrl",
+                    "test_control_file" : "/certificate/ctrl.json"
+                }
+            }
+        }
+    ]
+}
+

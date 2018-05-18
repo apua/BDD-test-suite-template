@@ -1,0 +1,46 @@
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+
+*** Test Cases ***
+Multiple SUTs Scenario 5 (One Stage One SUT)
+    [Tags]  fast    multi_sut
+    Upload QA Test Snippets
+    Go To Edit Test Plan Page
+    Open Directory  QA
+    Add Snippet     Multi SUT S5
+    Verify Snippet In Order 1 Status Should Be "Ready to Submit"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[2]['name']}
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[10]['name']}
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[1]['name']}
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[2]}
+    Verify SUT Show Up In SUT Section Row 2 With Correct Data ${hw[10]}
+    Verify SUT Show Up In SUT Section Row 3 With Correct Data ${hw[1]}
+    ${job id}=    Submit Job From Edit Test Plan Page
+    Monitor Job ${job id} Status Should Be pass In 180 Seconds
+
+Multiple SUTs Scenario 6 (Mutiple Stages Multiple SUTs)
+    [Tags]  fast    multi_sut
+    Upload QA Test Snippets
+    Go To Edit Test Plan Page
+    Open Directory  QA
+    Add Snippet     Multi SUT S6 JCF1
+    Verify Snippet In Order 1 Status Should Be "Ready to Submit"
+    Add Snippet     Multi SUT S6 JCF2
+    Verify Snippet In Order 2 Status Should Be "Ready to Submit"
+    Add Snippet     Multi SUT S6 JCF3
+    Verify Snippet In Order 3 Status Should Be "Ready to Submit"
+    Add Snippet     Multi SUT S6 JCF4
+    Verify Snippet In Order 4 Status Should Be "Ready to Submit"
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[2]['name']}
+    Click Add SUT In SUT Section
+    Pick SUT    ${hw[10]['name']}
+    Verify SUT Show Up In SUT Section Row 1 With Correct Data ${hw[2]}
+    Verify SUT Show Up In SUT Section Row 2 With Correct Data ${hw[10]}
+    ${job id}=    Submit Job From Edit Test Plan Page
+    Monitor Job ${job id} Status Should Be pass In 240 Seconds

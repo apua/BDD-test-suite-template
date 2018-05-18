@@ -1,0 +1,33 @@
+{
+    "info": {
+        "name": "Multi SUT S6 JCF2"
+    },
+    "ckey": {
+        "stage1": "ipconfig",
+        "stage2": "dir"
+    },
+    "stages":[
+        {
+            "Run_sys_cmd on Windows": {
+                "target":"${sut2}",
+                "action": {
+                    "cirrus_module": "sys_command",
+                    "command": "${ckey.stage1}",
+                    "output_mode": "overwrite",
+                    "error_file": "/errors.txt"
+                }
+            }
+        },
+        {
+            "Run_sys_cmd on Windows Again": {
+                "target":"${sut2}",
+                "action": {
+                    "cirrus_module": "sys_command",
+                    "command": "${ckey.stage2}",
+                    "output_mode": "overwrite",
+                    "error_file": "/errors.txt"
+                }
+            }
+        }
+    ]
+}

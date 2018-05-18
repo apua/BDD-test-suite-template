@@ -1,0 +1,4 @@
+*** Variables ***
+${LOGIN_USER_IN_LOGIN_PAGE}      id=hp-login-user
+${LOGIN_PASSWORD_IN_LOGIN_PAGE}  id=hp-login-password
+${LOGIN_BUTTON_IN_LOGIN_PAGE}    id=hp-login-button

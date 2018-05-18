@@ -1,0 +1,26 @@
+*** Settings ***
+Documentation       Feature Test: cirrus_GlobalSearch_UI
+Resource			OVAConfig.txt      
+Suite Setup         Load Test Data and Open Browser
+Suite Teardown      Logout And Close All Browsers
+Library           Collections
+Library           String
+Library           Process
+Library			BuiltIn
+
+
+
+*** Test Cases ***
+01. Log into cirrus as Administrator
+    Start Process       bash      xvfb.sh 
+    [Documentation]    Log in to Appliance
+    Log To Console    *********Log into Appliance as Administrator****************
+    ${user} =    Get Data By Property    ${testdata.users}    name    Administrator
+    login_appliance    ${user[0].name}		${user[0].password}
+    Log to Console    Successfully logged in as Administrator
+	${data} =	Get Data By Property    ${testdata.glob}
+	Log to Console		${testdata.glob[0].text}
+	${status}=      cirrus_ui_global_search_field		@{testdata.glob}			
+    Run Keyword If	'${status}' == 'True'  Log to Console   Successfully verified the global search page completely  ELSE    fail
+    Logout And Close All Browsers
+    

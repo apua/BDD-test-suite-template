@@ -1,0 +1,46 @@
+{
+  "info": {
+      "name": "Notify",
+      "desc": "Notify MAT",
+      "login_name": "administrator"
+  },
+  "suts": {
+    "sut": {
+        "cirrus_flags": ["unregistered"],
+        "name": "ilo123",
+        "type": "ilo",
+        "desc": "",
+        "ilo_ip": "10.30.1.123",
+        "ilo_user": "Administrator",
+        "ilo_password": "Compaq123",
+        "mac_add": "9c:b6:54:b3:7a:4d",
+        "nic_id": "2",
+        "boot_mode": "UEFI",
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    }
+  },
+  "ckey": {
+      "email_address":"gooby.teng@hpe.com",
+      "name":"Gooby"
+  },
+  "stages":{
+      "Notify":{
+          "target":"${cirrus}",
+          "action":{
+              "cirrus_module":"notify",
+              "name":"${ckey.name}",
+              "method":[
+                  "email"
+              ],
+              "email":"${ckey.email_address}"
+          }
+      }
+  }
+}
+

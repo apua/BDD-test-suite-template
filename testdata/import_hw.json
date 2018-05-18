@@ -1,0 +1,23 @@
+[
+    {
+        "name": "ilo54",
+        "ilo_ip": "10.30.1.54",
+        "ilo_user": "Administrator",
+        "ilo_password": "Q29tcGFxMTIz",
+        "sys_ip": "10.30.1.35",
+        "sys_username": "root",
+        "sys_password": "Q29tcGFxMTIz",
+        "nic_id": "1",
+        "mac_add": "38:63:bb:43:20:70",
+        "type": "ilo",
+        "desc": "iLO SUT - 0",
+        "id": 2,
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    }
+]

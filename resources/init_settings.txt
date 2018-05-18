@@ -1,0 +1,11 @@
+*** Variables ***
+# Here to overwrite the default variables/parameters in "Variables" file
+${CIRRUS_ADMIN_USERNAME}    administrator
+${CIRRUS_DEFAULT_ADMIN_PASSWORD}    admin
+${CIRRUS_ADMIN_PASSWORD}    Compaq123
+${BROWSER}          chrome
+${SELENIUM_SPEED}   1 
+
+${VSPHERE_IP}    10.30.1.79
+${VSPHERE_USERNAME}    root
+${VSPHERE_PASSWORD}    Compaq123

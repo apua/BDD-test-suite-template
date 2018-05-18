@@ -1,0 +1,68 @@
+# pybot cmd:
+#   pybot -v "CIRRUS_IP":"10.30.1.71" Cirrus_REST_MAT.txt
+
+*** Settings ***
+Resource        ${CURDIR}/../resources/init_settings.txt
+
+Test Setup      Login To Appliance  ${VM_name}
+
+Force Tags        rest
+
+
+*** Keywords ***
+Login To Appliance
+    [Arguments]     ${VM_name}
+    Import Library  ${CURDIR}/../resources/EsxiLib.py    ip=${VSPHERE_IP}    username=${VSPHERE_USERNAME}   password=${VSPHERE_PASSWORD}    WITH NAME   EsxiLib
+    ${ip}=  Get Variable Value  ${CIRRUS_VM_IP}
+    ${ip}=  Run Keyword If  '${ip}' == 'None'  EsxiLib.Get IP  vmname=${VM_name}  ELSE  Get Variable Value  ${ip}
+    Import Library  ${CURDIR}/../resources/CirrusRESTLib.py    ip=${ip}    WITH NAME   Cirrus
+    ${resp}=    Login Cirrus    ${CIRRUS_ADMIN_USERNAME}    ${CIRRUS_ADMIN_PASSWORD}
+    Log to Console      ${ip}
+    Should Be Equal As Strings    ${resp}    200
+
+*** Test Cases ***
+Add Hardware
+    [Tags]  rat
+    ${resp}=    Add Hardware   ${CURDIR}/../testdata/Server.json
+    Should Be Equal As Strings    ${resp}    200
+
+Edit Hardware
+    [Tags]  rat
+    ${resp}=    Edit Hardware   1   desc    Update HW description here
+    Should Be Equal As Strings    ${resp}    200
+    ${resp}=    Edit Hardware   2   sys_ip  10.10.10.10
+    Should Be Equal As Strings    ${resp}    200
+    ${resp}=    Edit Hardware   3   name    Update HW name here
+    Should Be Equal As Strings    ${resp}    200
+
+Clone Hardware  
+    [Tags]  rat disabled
+    ${resp}=    Clone Hardware   3   new_attr    Add new attr value here
+    Should Be Equal As Strings    ${resp}    200
+
+Delete Hardware
+    [Tags]  rat
+    ${resp}=    Delete Hardware   3
+    Should Be Equal As Strings    ${resp}    204
+
+Add Hardware Group
+    [Tags]  rat
+    ${resp}=    Add Hardware    ${CURDIR}/../testdata/HW_Group.json
+    Should Be Equal As Strings    ${resp}    200
+
+Edit Hardware Group
+    [Tags]  rat
+    ${resp}=    Edit Hardware   8   name    new HW Group
+    Should Be Equal As Strings    ${resp}    200
+    ${resp}=    Edit Hardware   8   group_member    1,6
+    Should Be Equal As Strings    ${resp}    200
+
+Delete Hardware Group
+    [Tags]  rat
+    ${resp}=    Delete Hardware   7
+    Should Be Equal As Strings    ${resp}    204
+
+Add Test Hardware for Job Submission
+    [Tags]  rat
+    ${resp}=    Add Hardware   ${CURDIR}/../testdata/test_suts.json
+    Should Be Equal As Strings    ${resp}    200

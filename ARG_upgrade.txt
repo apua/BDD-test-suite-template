@@ -1,0 +1,10 @@
+# This argument file specifiies parameters and test suit execution order.
+# Will use "chrome" browser for UI Selenium test on VM
+# Include test cases with "init","upgrade" tags and exclude test
+# cases with tag "renameVM".
+-v BROWSER:chrome 
+-i init
+-i upgrade
+-e renameVM
+mat/script/tests/cirrus/Cirrus_REST_no_dependent/
+mat/script/tests/cirrus/Cirrus_UI_no_dependent/

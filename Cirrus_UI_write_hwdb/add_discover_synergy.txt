@@ -1,0 +1,31 @@
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+Library     ${CURDIR}/../resources/CirrusRESTLib.py    ip=${CIRRUS_IP}    WITH NAME   CirrusREST
+
+*** Keywords ***
+Login and Go To Hardware Management Page
+    Before Test Login Appliance
+    Go To Hardware Management Page
+    
+
+*** Test Cases ***
+Add OneView Hardware And Discover Nodes
+    [Tags]      toft1     hwm     ui    synergy
+    [Setup]     Login and Go To Hardware Management Page
+    ${hw}=    Get Data From JSON   ${CURDIR}/../testdata/synergy.json
+    Add Tbird_OneView Hardware With Data ${hw[0]}
+    Verify Added HW Name Type Desc Should Be    ${hw[0]}
+    Discover Synergy Server     ${hw[0]['name']}
+    Verify Added HW Name Type Desc Should Be    ${hw[1]}
+    Verify Added HW Name Type Desc Should Be    ${hw[2]}
+    Verify Added HW Name Type Desc Should Be    ${hw[3]}
+    Verify Added HW Name Type Desc Should Be    ${hw[4]}
+    Verify Added HW Name Type Desc Should Be    ${hw[5]}
+    Verify Added HW Name Type Desc Should Be    ${hw[6]}
+    Verify Added HW Name Type Desc Should Be    ${hw[7]}
+    Verify Added HW Name Type Desc Should Be    ${hw[8]}
+    Verify Added HW Name Type Desc Should Be    ${hw[9]}
+    Verify Added HW Name Type Desc Should Be    ${hw[10]}
+    Verify Added HW Name Type Desc Should Be    ${hw[11]}

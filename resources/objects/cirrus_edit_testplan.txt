@@ -1,0 +1,17 @@
+*** Variables ***
+${TEST_LAYOUT_TABLE}    css=table#test-layout-table
+${SUT_TABLE_IN_EDIT_TEST_PLAN}  css=table#tour-associations
+${SAVE_BUTTON_IN_CKEY_WINDOW}  id=tour-add
+${CANCEL_BUTTON_IN_CKEY_WINDOW}  css=a[rel="localize[core.details.cancel]"]
+${CKEY_WINDOW_HEADER}   css=div#hp-testplanuser-section
+${ADD_SUT_LINK_IN_SUT_SECTION}  css=a#cirrus-testplanedit-sut-add
+${PICK_SUT_TABLE}       css=table#hp-edit-choices
+${ADD_BUTTON_IN_PICK_SUT_WINDOW}    css=div.hp-dialog > footer > div.hp-controls > button.hp-add
+${ACTIONS_BUTTON_IN_EDIT_TEST_PLAN_PAGE}    css=div#tour-bundle-actions > label[rel="localize[cirrus.details.actions]"]
+${SUBMIT_IN_ACTIONS_OF_EDIT_TEST_PLAN_PAGE}     css=a#cirrus-submit-job
+${SAVE_IN_ACTIONS_OF_EDIT_TEST_PLAN_PAGE}       css=a#cirrus-testplanedit-save
+${SAVE_AS_IN_ACTIONS_OF_EDIT_TEST_PLAN_PAGE}    css=a#cirrus-testplanedit-saveas
+${FILL_IN_TEST_PLAN_NAME}       css=input#cirrus-testplan-save-name
+${OK_BUTTON_IN_SAVE_TESTPLAN_NAME_WINDOW}       css=input#cirrus-testplan-save-ok-button
+${OK_IN_JOB_SUBMISSION_POPUP_WINDOW}      css=div.hp-dialog > footer > div.hp-controls > button.hp-ok
+${DELETE_SUT_IN_EDIT_TEST_PLAN_PAGE}    css=div.hp-close

@@ -1,0 +1,36 @@
+#   __init__.txt under
+#   Cirrus_UI_write_testplan_db_with_readonly_SUTs_prepopulated
+#   is to execute test cases that write to testplan db
+#   to test testplan db related function.
+#   Example test cases in this suite such as Edit Test Plan, Delete Test Plan, ...etc.
+#   Test suite setup: Before running test cases, the default test SUTs from
+#   testdata/test_testplan2.json will be imported into hwdb.
+#   Test suite teardown: After completing all test cases, suite teardown will
+#   delete the imported SUTs from hwdb.
+#   Testers write test cases in this suite should use following keywords 
+#   to add test plan with random generated name.
+#   By REST call api:
+#       ${tp}=    Get Data From JSON And Assign Testplan Name   edit_test_plan.json
+#       Import Test Plans Via REST  ${tp}
+#   By Selenium:
+#       ${testplan name}=   Get Random Word
+#       Save Test Plan As ${testplan name}
+#
+#   Global variables in this suite:
+#       ${hw},      default SUTs imported from testdata/test_testplan2.json
+#
+#   Pybot usage examples: 
+#       pybot -v VM:cirrus-ci
+#       Cirrus_UI_write_testplan_db_with_readonly_SUTs_prepopulated
+
+*** Settings ***
+Resource    ${CURDIR}/../resources/config/env_setup.txt
+Resource    ${CURDIR}/../resources/fixtures/fixture_and_faker.txt
+Resource    ${CURDIR}/../resources/selenium_wrapper.txt
+Resource    ${CURDIR}/../resources/restapi_keywords.txt
+
+Suite Setup     Import Test SUTs To Cirrus And Open Browser For Test    ${VM}  ${BROWSER}   test_testplan2.json
+Suite Teardown  Clear Test SUTs From Cirrus And Close Browser
+Test Setup      Before Test Login Appliance
+Test Teardown   After Test Logout Appliance
+

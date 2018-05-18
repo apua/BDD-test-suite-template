@@ -1,0 +1,18 @@
+[
+    {
+        "owner": "administrator",
+        "jobgroup": "No",
+        "sut_required": "Yes",
+        "snippets": [
+            "1","sleeptest","Ready to Submit",""
+        ],
+        "variables": [
+            "seconds","5",
+            "timeout","30s",
+            "sleep_on","cirrus"
+        ],
+        "suts": [
+            "1","tp_autotest","generic","Hello World - 0"
+        ]
+    }
+]

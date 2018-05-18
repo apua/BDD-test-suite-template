@@ -1,0 +1,72 @@
+[
+    {
+        "name": "OneView Server For Synergy",
+        "type": "tbird_oneview",
+        "desc": "",
+        "ov_ip": "10.30.250.1",
+        "ov_username": "Administrator",
+        "ov_password": "admin123",
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    },
+    {
+        "name": "Enclosure 1",
+        "type": "tbird_enclosure",
+        "desc": ""
+    },
+    {
+        "name": "Enclosure 2",
+        "type": "tbird_enclosure",
+        "desc": ""
+    },
+    {
+        "name": "Enclosure2-interconnect1",
+        "type": "tbird_interconnect",
+        "desc": ""
+    },
+    {
+        "name": "Enclosure2-interconnect4",
+        "type": "tbird_interconnect",
+        "desc": ""
+    },
+    {
+        "name": "Enclosure1-interconnect1",
+        "type": "tbird_interconnect",
+        "desc": ""
+    },
+    {
+        "name": "Enclosure1-interconnect4",
+        "type": "tbird_interconnect",
+        "desc": ""
+    },
+    {
+        "name": "Enclosure2-bay2",
+        "type": "tbird_server",
+        "desc": "Profile Applied"
+    },
+    {
+        "name": "Enclosure2-bay3",
+        "type": "tbird_server",
+        "desc": "Profile Applied"
+    },
+    {
+        "name": "Enclosure1-bay2",
+        "type": "tbird_server",
+        "desc": "Profile Applied"
+    },
+    {
+        "name": "Enclosure1-bay2",
+        "type": "tbird_server",
+        "desc": "Profile Applied"
+    },
+    {
+        "name": "Enclosure1-bay8",
+        "type": "tbird_server",
+        "desc": "Profile Applied"
+    }
+]

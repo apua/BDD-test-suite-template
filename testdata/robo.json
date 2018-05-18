@@ -1,0 +1,39 @@
+{
+  "info": {
+      "desc": "RG test",
+      "login_name": "administrator",
+      "name" : "RG test on windows"
+  },
+  "suts": {
+    "robogalaxy_server": {
+        "cirrus_flags": ["unregistered"],
+        "name": "winrg",
+        "type": "robogalaxy",
+        "desc": "",
+        "sys_ip": "10.30.250.23",
+        "sys_username": "Administrator",
+        "sys_password": "Compaq123",
+        "rg_root": "/Users/Administrator/RG",
+        "os_family": "windows",
+        "owner": "administrator",
+        "owner_type": "users",
+        "inventory_interval": "0",
+        "inventory_limit": "no inventory",
+        "inventory_override": "false",
+        "inventory_type": "Global",
+        "pause_inventory": "false"
+    }
+  },
+  "stages": {
+      "Run RG sample": {
+          "target": "robogalaxy_server",
+          "next_pass": "_quit",
+          "next_fail": "_quit",
+          "action": {
+              "cirrus_module": "robogalaxy",
+              "testcase": ["C:\\Users\\Administrator\\RG\\winrg_test\\tests\\sample.txt"]
+          }
+      }
+   }
+}
+

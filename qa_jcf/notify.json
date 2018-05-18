@@ -1,0 +1,26 @@
+{
+    "info": {
+        "name": "Notify",
+        "desc": "Notify MAT"
+    },
+    "ckey": {
+        "email_address":"gooby.teng@hpe.com",
+        "name":"Gooby"
+    },
+    "stages":[
+        {
+            "Notify":{
+                "target":"${cirrus}",
+                "action":{
+                    "cirrus_module":"notify",
+                    "name":"${ckey.name}",
+                    "method":[
+                        "email"
+                    ],
+                    "email":"${ckey.email_address}"
+                }
+            }
+        }
+    ]
+}
+

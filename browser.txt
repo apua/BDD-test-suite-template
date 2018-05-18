@@ -1,0 +1,6 @@
+*** Settings ***
+Library           Selenium2Library
+
+*** Test Cases***
+Open Browser
+    Open Browser        https://cirrus-demo.tw.rdlabs.hpecorp.net      chrome
