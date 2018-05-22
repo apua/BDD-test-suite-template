@@ -1,6 +1,42 @@
 *** Settings ***
 
-Resource    common.robot
+#Resource    common.robot
+Test teardown   logout if any
+
+
+*** Keywords ***
+
+Given ${who} create a generic hardware
+    log to console  who: ${who}
+
+When ${who} reserve the hardware for ${range}
+    log to console  who: ${who}
+    log to console  range: ${range}
+
+Then they should see the reservation as expected
+    no operation
+
+and reserve the hardware for ${range}
+    log to console  range: ${range}
+
+When they ${operate} the reservation with ${#} unit
+    log to console  operate: ${operate}
+    log to console  quantity: ${#}
+
+When they release the hardware from the reservation
+    no operation
+
+Then both test admin and infrastructure admin should see the reservation as expected
+    no operation
+
+Then they should see the reservation does not exist
+    no operation
+
+Then they should see the reservation has been adjusted as expected
+    no operation
+
+logout if any
+    no operation
 
 
 *** Test Cases ***
@@ -9,56 +45,38 @@ Resource    common.robot
 
 Infrastructure admin reserves an own newly added hardware
     [Tags]  RAT
-    [Setup]
-    ...     Login as infrastructure admin
 
-    Given a generic hardware is created by myself
-    When I reserve the hardware for the nearest minimal range
-    Then the hardware should be reserved as expected
-
-    [Teardown]
-    ...     Logout
+    Given infrastructure admin create a generic hardware
+    When they reserve the hardware for the nearest minimal range
+    Then they should see the reservation as expected
 
 Test admin reserves an own newly added hardware
     [Tags]  RAT
-    [Setup]
-    ...     Login as test admin
 
-    Given a generic hardware is created by myself
-    When I reserve the hardware for the nearest minimal range
-    Then the hardware should be reserved as expected
-
-    [Teardown]
-    ...     Logout
+    Given test admin create a generic hardware
+    When they reserve the hardware for the nearest minimal range
+    Then they should see the reservation as expected
 
 # Reserve Hardware 2
 
 Test admin reserves others' newly added hardware
+    [Documentation]
+    ...     Take infrastructure admin as the other user
     [Tags]  RAT
-    [Setup]
-    ...     Login as test admin
 
-    Given a generic hardware is created by infrastructure admin
-    When I reserve the hardware for the nearest minimal range
-    Then the hardware should be reserved as expected
-
-    [Teardown]
-    ...     Logout
+    Given infrastructure admin create a generic hardware
+    When test admin reserve the hardware for the nearest minimal range
+    Then both test admin and infrastructure admin should see the reservation as expected
 
 # Reserve Hardware 3
 
 Test admin reserves others' reserved hardware
     [Tags]  FAST
-    [Setup]
-    ...     Login as test admin
 
-    Given a generic hardware is created by infrastructure admin
-    and the hardware is reserved for the nearest minimal range by infrastructure admin
-    When I reserve the hardware for the next minimal range
-    Then the hardware should be reserved as expected
-
-    [Teardown]
-    ...     Logout
+    Given infrastructure admin create a generic hardware
+    and reserve the hardware for the nearest minimal range
+    When test admin reserve the hardware for the next minimal range
+    Then both test admin and infrastructure admin should see the reservation as expected
 
 # Release Hardware
 
@@ -68,16 +86,11 @@ Infrastructure administrator releases hardware reserved by himself
     ...     which is long enough to assure the reservation will be cleaned up
     ...     after released.
     [Tags]  RAT
-    [Setup]
-    ...     Login as infrastructure admin
 
-    Given a generic hardware is created by myself
-    and the hardware is reserved for the next minimal range by myself
-    When I release the hardware from the reservation
-    Then the reservation should not exist
-
-    [Teardown]
-    ...     Logout
+    Given infrastructure admin create a generic hardware
+    and reserve the hardware for the next minimal range
+    When they release the hardware from the reservation
+    Then they should see the reservation does not exist
 
 Test administrator releases hardware reserved by himself
     [Documentation]
@@ -85,46 +98,34 @@ Test administrator releases hardware reserved by himself
     ...     which is long enough to assure the reservation will be cleaned up
     ...     after released.
     [Tags]  RAT
-    [Setup]
-    ...     Login as test admin
 
-    Given a generic hardware is created by myself
-    and the hardware is reserved for the next minimal range by myself
-    When I release the hardware from the reservation
-    Then the reservation should not exist
+    Given test admin create a generic hardware
+    and reserve the hardware for the next minimal range
+    When they release the hardware from the reservation
+    Then they should see the reservation does not exist
 
 # Edit Hardware Reservation
 
 Infrastructure administrator extends/shortens hardware reservation time
     [Tags]  RAT
-    [Setup]
-    ...     Login as infrastructure admin
 
-    Given a generic hardware is created by myself
-    and the hardware is reserved for the nearest minimal range by myself
+    Given infrastructure admin create a generic hardware
+    and reserve the hardware for the nearest minimal range
 
-    When I extend the reservation with 1 unit
-    Then the reservation should be adjusted as expected
+    When they extend the reservation with 1 unit
+    Then they should see the reservation has been adjusted as expected
 
-    When I shrink the reservation with 1 unit
-    Then the reservation should be adjusted as expected
-
-    [Teardown]
-    ...     Logout
+    When they shrink the reservation with 1 unit
+    Then they should see the reservation has been adjusted as expected
 
 Test administrator extends/shortens hardware reservation time
     [Tags]  RAT
-    [Setup]
-    ...     Login as test admin
 
-    Given a generic hardware is created by myself
-    and the hardware is reserved for the nearest minimal range by myself
+    Given test admin create a generic hardware
+    and reserve the hardware for the nearest minimal range
 
-    When I extend the reservation with 1 unit
-    Then the reservation should be adjusted as expected
+    When they extend the reservation with 1 unit
+    Then they should see the reservation has been adjusted as expected
 
-    When I shrink the reservation with 1 unit
-    Then the reservation should be adjusted as expected
-
-    [Teardown]
-    ...     Logout
+    When they shrink the reservation with 1 unit
+    Then they should see the reservation has been adjusted as expected
