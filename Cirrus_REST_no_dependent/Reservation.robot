@@ -6,33 +6,30 @@ Test teardown   logout if any
 
 *** Keywords ***
 
-Given ${who} create a generic hardware
+${who:they|\w+ admin|and} create a generic hardware
     log to console  who: ${who}
 
-When ${who} reserve the hardware for ${range}
+${who:they|\w+ admin|and} reserve the hardware for ${range}
     log to console  who: ${who}
     log to console  range: ${range}
 
-Then they should see the reservation as expected
+they should see the reservation as expected
     no operation
 
-and reserve the hardware for ${range}
-    log to console  range: ${range}
-
-When they ${operate} the reservation with ${#} unit
+they ${operate:extend|shrink} the reservation with ${#} unit
     log to console  operate: ${operate}
     log to console  quantity: ${#}
 
-When they release the hardware from the reservation
+they release the hardware from the reservation
     no operation
 
-Then both test admin and infrastructure admin should see the reservation as expected
+both test admin and infrastructure admin should see the reservation as expected
     no operation
 
-Then they should see the reservation does not exist
+they should see the reservation does not exist
     no operation
 
-Then they should see the reservation has been adjusted as expected
+they should see the reservation has been adjusted as expected
     no operation
 
 logout if any
