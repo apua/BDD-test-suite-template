@@ -5,7 +5,8 @@
 
 
 *** Keywords ***
-# common.util
+
+# util
 
 convert time range to start/end
     [Arguments]     ${range}
@@ -22,7 +23,7 @@ logout if any
     #run keyword if  ${api.client.token}     api.logout
     no operation
 
-# common.hardware management
+# hardware management
 
 create generic hardware
     [Arguments]     ${credential}=${None}
@@ -35,7 +36,7 @@ create generic hardware
     ${hardware id}=     set variable    1
     ${hardware}=        set variable    "hardware data"
 
-# common.reservation
+# reservation
 
 reserve hardware
     [Arguments]     ${hardware id}  ${start}    ${end}  ${credential}=${None}
