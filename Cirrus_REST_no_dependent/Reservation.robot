@@ -46,25 +46,29 @@ they should see the reservation as expected
     log to console  the reservation ID: ${reservation id}
     log to console  the reservation: ${reservation}
 
-    reservation should be as expected   ${reservation id}   expect=${reservation}
+    ${current reservation}=     detail reservation  ${reservation id}
+    reservations should be equal    ${current reservation}  ${reservation}
 
 both test admin and infrastructure admin should see the reservation as expected
     log to console  the reservation ID: ${reservation id}
     log to console  the reservation: ${reservation}
 
-    reservation should be as expected   ${reservation id}   ${reservation}  ${test admin}
-    reservation should be as expected   ${reservation id}   ${reservation}  ${infrastructure admin}
+    ${current reservation}=     detail reservation  ${reservation id}   ${test admin}
+    reservations should be equal    ${current reservation}  ${reservation}
+    ${current reservation}=     detail reservation  ${reservation id}   ${infrastructure admin}
+    reservations should be equal    ${current reservation}  ${reservation}
 
 they should see the reservation does not exist
     log to console  the reservation ID: ${reservation id}
 
-    reservation should be as expected   ${reservation id}   expect=${None}
+    reservation should not exist    ${reservation id}
 
 they should see the reservation has been adjusted as expected
     log to console  the reservation ID: ${reservation id}
     log to console  the adjusted reservation: ${adjusted reservation}
 
-    reservation should be as expected   ${reservation id}   expect=${adjusted reservation}
+    ${current reservation}=     detail reservation  ${reservation id}
+    reservations should be equal    ${current reservation}  ${adjusted reservation}
 
 
 *** Test Cases ***
