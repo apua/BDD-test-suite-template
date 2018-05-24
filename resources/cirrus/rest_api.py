@@ -1,14 +1,8 @@
-from urllib.parse import urljoin
-
-import requests
-from robot.api import logger
-
-
-requests.packages.urllib3.disable_warnings()
-
-
 class StatefulClient:
     def __init__(self, root_url):
+        import requests
+        requests.packages.urllib3.disable_warnings()
+
         self.session = requests.Session()
         self.session.verify = False
         self.session.trust_env = False
@@ -16,23 +10,24 @@ class StatefulClient:
         self.root_url = root_url
         self.user_name = None
 
-    def _get(self, path):
+    def _method(self, meth, path, json_data=None):
+        from urllib.parse import urljoin
         uri = urljoin(self.root_url, path)
-        return self.session.get(uri)
+        if json_data is None:
+            print('*DEBUG* payload -> {json_data}'.format(**locals()))
+        return getattr(self.session, meth)(uri, json=json_data)
+
+    def _get(self, path):
+        return self._method('get', path)
 
     def _post(self, path, json_data):
-        logger.debug('payload -> {json_data}'.format(**locals()))
-        uri = urljoin(self.root_url, path)
-        return self.session.post(uri, json=json_data)
+        return self._method('post', path, json_data)
 
     def _put(self, path, json_data):
-        logger.debug('payload -> {json_data}'.format(**locals()))
-        uri = urljoin(self.root_url, path)
-        return self.session.put(uri, json=json_data)
+        return self._method('put', path, json_data)
 
     def _delete(self, path):
-        uri = urljoin(self.root_url, path)
-        return self.session.delete(uri)
+        return self._method('delete', path)
 
 
 # NOTE: unknown Atlas version so far
