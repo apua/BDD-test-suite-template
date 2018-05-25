@@ -33,6 +33,9 @@ class StatefulClient:
 # NOTE: unknown Atlas version so far
 class AtlasApi:
     def login(self, user_name, password):
+        self.user_name = user_name
+        self.session.headers.update({'auth': 'qwer1234'})
+        return
         resp = self._post('/rest/login-sessions', {
             'userName': user_name,
             'password': password,
@@ -43,6 +46,9 @@ class AtlasApi:
         self.session.headers.update({'auth': resp.json()['sessionID']})
 
     def logout(self):
+        self.user_name = None
+        del self.session.headers['auth']
+        return
         resp = self._delete('/rest/login-sessions')
         if not resp.status_code == 204:
             raise AssertionError(resp.json())
@@ -68,11 +74,11 @@ def auto_login(cls):
                         if credential:
                             if {self_var}.user_name is None:
                                 {self_var}.login(**credential)
-                            elif credential['user_name'] != {self_var}.user_name:
+                            elif credential['user_name'] == {self_var}.user_name:
+                                pass
+                            else:
                                 {self_var}.logout()
                                 {self_var}.login(**credential)
-                            else:
-                                pass
                     ''')).body[0]
             stmt.args.args.append(ref.args.args[-1])
             stmt.args.defaults.append(ref.args.defaults[-1])
