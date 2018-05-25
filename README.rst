@@ -1,3 +1,6 @@
+BDD Test Suite Template
+-----------------------
+
 This is a template of behavior-driven style Robot Framework test suite,
 test resource, and test library.
 
@@ -9,7 +12,7 @@ For ATDD, there is three stages:
 
 0. Create and breakdown user stories.
 
-1. Create specific BDD-style test cases based on acceptance tests.
+1. [bdd] Create specific BDD-style test cases based on acceptance tests.
 
    #. In the beginning, test cases and acceptance tests are 1-1;
       QA can extend test cases for the same acceptance tests later.
@@ -22,7 +25,7 @@ For ATDD, there is three stages:
    #. Mock keywords or invoke `no operation` to bypass real actions for
       validation.
 
-2. Create or map keywords to behaviors.
+2. [key] Create or map keywords to behaviors.
 
    #. In Robot Framework, it is inconvenient to control complicated
       Python types. Therefore, keep types and actions out of scope of test
@@ -33,9 +36,11 @@ For ATDD, there is three stages:
       a new one.
    #. Create mock Python code to bypass real actions for validation.
 
-3. Create low-level library.
+3. [lib] Create low-level library.
 
    #. Implement data types and low-level keywords.
    #. Avoid unnecessary pack/unpack variables since it breaks dryrun
       validation.
    #. Follow KISS principle in order to maintain it easily.
+
+The template itself is an example for the 3 stages above: https://github.com/apua/BDD-test-suite-template/commits/master
