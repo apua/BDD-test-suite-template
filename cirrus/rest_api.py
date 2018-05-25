@@ -108,3 +108,4 @@ class RestApi(CirrusApi, AtlasApi, StatefulClient):
     """
     REST API keywords
     """
+    ROBOT_LIBRARY_SCOPE = 'Global'
